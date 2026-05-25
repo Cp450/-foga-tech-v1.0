@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /espace-client
+Disallow: /api/
+
+Sitemap: https://foga-tech.com/sitemap.xml

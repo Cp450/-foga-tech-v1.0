@@ -1,0 +1,20 @@
+{
+  "name": "foga-tech-api",
+  "version": "1.0.0",
+  "description": "Foga-Tech BTP API — Express + PostgreSQL + Puppeteer + SMTP",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js",
+    "migrate": "node scripts/migrate.js"
+  },
+  "type": "commonjs",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.1",
+    "express": "^5.2.1",
+    "nodemailer": "^8.0.7",
+    "pg": "^8.13.1",
+    "puppeteer": "^25.0.4"
+  }
+}

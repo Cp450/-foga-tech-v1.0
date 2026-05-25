@@ -1,0 +1,28 @@
+## Foga-Tech V1.0 — Dev local (PostgreSQL uniquement)
+## API + Web tournent en local Node pour hot-reload.
+##
+## Usage:
+##   docker compose up -d
+##   cd api && npm install && npm run migrate && npm run dev
+##   cd web && npm install && npm run dev
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: foga-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: foga
+      POSTGRES_PASSWORD: foga_dev
+      POSTGRES_DB: foga_tech
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U foga -d foga_tech"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:

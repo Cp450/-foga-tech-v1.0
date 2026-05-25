@@ -1,0 +1,303 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-on-background;
+    font-family: "Inter", system-ui, sans-serif;
+    margin: 0;
+  }
+  #root {
+    width: 100%;
+    text-align: left;
+  }
+
+  /* Focus-visible global — accessibilité keyboard */
+  :focus {
+    outline: none;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  [role="button"]:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    outline: 2px solid #FF6B00;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+/* ── Keyframes ─────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes navMobileIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-slide-up { animation: fadeSlideUp 0.4s ease-out both; }
+.animate-nav-mobile-in { animation: navMobileIn 0.25s ease-out both; }
+
+/* Mobile nav menu transition */
+.nav-mobile-menu {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+}
+.nav-mobile-menu.open {
+  max-height: 700px;
+}
+
+/* ── Partners infinite scroll ──────────────────────── */
+@keyframes partners-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-partners-scroll {
+  animation: partners-scroll 30s linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ── Hero Ken Burns cross-fade (5 images, 20s cycle) ─ */
+@keyframes hero-bg-fade {
+  0%, 30%, 100% { opacity: 0; }
+  10%, 20%      { opacity: 1; }
+}
+@keyframes hero-bg-kenburns {
+  0%   { transform: scale(1) translate(0, 0); }
+  30%  { transform: scale(1.10) translate(-2%, 1.5%); }
+  100% { transform: scale(1.10) translate(-2%, 1.5%); }
+}
+.hero-bg-img {
+  animation: hero-bg-fade 20s linear infinite, hero-bg-kenburns 20s linear infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.hero-bg-img.hb-1 { animation-delay: -2s, -2s; }
+.hero-bg-img.hb-2 { animation-delay:  2s,  2s; }
+.hero-bg-img.hb-3 { animation-delay:  6s,  6s; }
+.hero-bg-img.hb-4 { animation-delay: 10s, 10s; }
+.hero-bg-img.hb-5 { animation-delay: 14s, 14s; }
+
+/* ── GenieCivil Ken Burns (4 images, 16s cycle) ─ */
+@keyframes gc-bg-fade {
+  0%, 37.5%, 100% { opacity: 0; }
+  12.5%, 25%      { opacity: 1; }
+}
+@keyframes gc-bg-kenburns {
+  0%    { transform: scale(1) translate(0, 0); }
+  37.5% { transform: scale(1.10) translate(-2%, 1.5%); }
+  100%  { transform: scale(1.10) translate(-2%, 1.5%); }
+}
+.gc-bg-img {
+  animation: gc-bg-fade 16s linear infinite, gc-bg-kenburns 16s linear infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.gc-bg-img.gc-1 { animation-delay: -2s, -2s; }
+.gc-bg-img.gc-2 { animation-delay:  2s,  2s; }
+.gc-bg-img.gc-3 { animation-delay:  6s,  6s; }
+.gc-bg-img.gc-4 { animation-delay: 10s, 10s; }
+
+/* ── Elevage Ken Burns (3 images, 18s — overlap continu, pas de gap fond bleu) ─ */
+@keyframes el-bg-fade {
+  0%       { opacity: 0; }
+  8.33%    { opacity: 1; }
+  41.67%   { opacity: 1; }
+  50%      { opacity: 0; }
+  100%     { opacity: 0; }
+}
+@keyframes el-bg-kenburns {
+  0%     { transform: scale(1) translate(0, 0); }
+  44.44% { transform: scale(1.10) translate(-2%, 1.5%); }
+  100%   { transform: scale(1.10) translate(-2%, 1.5%); }
+}
+.el-bg-img {
+  animation: el-bg-fade 18s ease-in-out infinite, el-bg-kenburns 18s ease-in-out infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.el-bg-img.el-1 { animation-delay: -2s, -2s; }
+.el-bg-img.el-2 { animation-delay:  4s,  4s; }
+.el-bg-img.el-3 { animation-delay: 10s, 10s; }
+
+/* ── Solutions Durables Ken Burns (2 imgs, hard cut) ─ */
+@keyframes sd-bg-step {
+  0%, 49.99% { opacity: 1; }
+  50%, 100%  { opacity: 0; }
+}
+@keyframes sd-bg-kenburns {
+  0%   { transform: scale(1) translate(0, 0); }
+  100% { transform: scale(1.10) translate(-2%, 1.5%); }
+}
+.sd-bg-img {
+  animation: sd-bg-step 16s steps(1, end) infinite, sd-bg-kenburns 8s linear infinite alternate;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.sd-bg-img.sd-1 { animation-delay: 0s, 0s; }
+.sd-bg-img.sd-2 { animation-delay: -8s, 0s; }
+
+/* ── GenieRural Ken Burns (1 image, slow zoom) ─ */
+@keyframes gr-bg-kenburns {
+  0%   { transform: scale(1) translate(0, 0); }
+  50%  { transform: scale(1.10) translate(-2%, 1.5%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+.gr-bg-img {
+  animation: gr-bg-kenburns 24s ease-in-out infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* ── Partenaires Ken Burns (3 images, 24s cycle) ─ */
+@keyframes pt-bg-fade {
+  0%, 28% { opacity: 1; }
+  33%, 95% { opacity: 0; }
+  100% { opacity: 1; }
+}
+@keyframes pt-bg-kenburns {
+  0%   { transform: scale(1.02) translate(0, 0); }
+  50%  { transform: scale(1.12) translate(-1.5%, 1%); }
+  100% { transform: scale(1.02) translate(0, 0); }
+}
+.pt-bg-img {
+  animation: pt-bg-fade 24s linear infinite, pt-bg-kenburns 24s ease-in-out infinite;
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+.pt-bg-img.pt-1 { animation-delay: 0s, 0s; }
+.pt-bg-img.pt-2 { animation-delay: -16s, -16s; }
+.pt-bg-img.pt-3 { animation-delay: -8s, -8s; }
+
+/* ── Wave background ──────────────────────────────── */
+@keyframes wave-flow {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-1200px); }
+}
+.wave-flow {
+  will-change: transform;
+  animation: wave-flow linear infinite;
+}
+.wave-1 { animation-duration: 28s; }
+.wave-2 { animation-duration: 22s; animation-direction: reverse; }
+.wave-3 { animation-duration: 35s; }
+.wave-4 { animation-duration: 18s; animation-direction: reverse; }
+.wave-5 { animation-duration: 40s; }
+
+/* ── Card hover elevation ──────────────────────────── */
+.card-lift {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 32, 69, 0.14);
+}
+/* Dark background variant */
+.card-lift-dark {
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.card-lift-dark:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Performance — GPU layers & containment ──────── */
+.animate-fade-slide-up { will-change: opacity, transform; }
+section { contain: layout style; }
+
+/* ── Reduced motion ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-slide-up,
+  .animate-nav-mobile-in,
+  .animate-partners-scroll,
+  .wave-flow,
+  .hero-bg-img,
+  .gc-bg-img,
+  .gr-bg-img,
+  .el-bg-img,
+  .sd-bg-img,
+  .pt-bg-img {
+    animation: none;
+  }
+  .nav-mobile-menu,
+  .nav-mobile-menu.open {
+    transition: none;
+    max-height: none;
+    overflow: visible;
+  }
+  /* Framer Motion — disable all transitions */
+  .card-lift,
+  .card-lift-dark {
+    transition: none;
+  }
+  .card-lift:hover,
+  .card-lift-dark:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* ── Print styles ───────────────────────────────────── */
+@media print {
+  /* Hide non-content chrome */
+  nav,
+  header,
+  footer,
+  [class*="StickyMobileBar"],
+  [class*="WhatsAppButton"],
+  [class*="ChatbotFoga"],
+  .sticky-cta-bar,
+  button,
+  [role="button"],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+  /* Reset dark backgrounds to white for printer */
+  body,
+  main,
+  section,
+  article {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  /* Ensure links are printable */
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    color: #555;
+  }
+  /* Disable animations + images simplified */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+  }
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+    page-break-inside: avoid;
+  }
+  /* Section spacing */
+  section {
+    padding: 1rem 0 !important;
+    page-break-inside: avoid;
+  }
+}
