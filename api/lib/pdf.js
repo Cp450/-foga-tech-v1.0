@@ -1,13 +1,13 @@
-const puppeteer = require('puppeteer')
+const puppeteer = require('puppeteer-core')
 
 // Sur KVM2 Ubuntu : apt install -y chromium-browser
-// puis définir PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser dans .env
+// PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser dans .env
+const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser'
+
 const PUPPETEER_OPTS = {
   headless: 'new',
+  executablePath: CHROMIUM_PATH,
   args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
-  ...(process.env.PUPPETEER_EXECUTABLE_PATH
-    ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
-    : {}),
 }
 
 /**
