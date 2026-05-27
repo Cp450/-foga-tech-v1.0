@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO'
@@ -57,7 +57,7 @@ export default function Location() {
     const msg = encodeURIComponent(
       `Bonjour Foga-Tech,\n\nJe souhaite obtenir un devis pour la location des engins suivants :\n${liste}\n\nMerci de me préciser les disponibilités, la durée minimale et les modalités de livraison.`
     )
-    window.open(`https://wa.me/242069610635?text=${msg}`, '_blank')
+    window.open(`https://wa.me/242069905640?text=${msg}`, '_blank')
   }, [selected])
 
   /* ── Navigation clavier (phase showroom) ───────────────────────── */

@@ -196,7 +196,7 @@ export default function GenieRural() {
       </section>
 
       {/* ── NOS EXPERTISES ────────────────────────────────────────── */}
-      <section className="py-20 md:py-28 bg-surface">
+      <section id="expertises" className="py-20 md:py-28 bg-surface">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
             <div>
@@ -215,7 +215,7 @@ export default function GenieRural() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-outline-variant">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-outline-variant rounded-2xl overflow-hidden">
             {EXPERTISES.map((e, i) => (
               <Link
                 key={e.num}
@@ -298,7 +298,7 @@ export default function GenieRural() {
             </div>
 
             {/* Cards grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-outline-variant">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border border-outline-variant rounded-2xl overflow-hidden">
               {TERRAIN_ITEMS.map((s, i) => (
                 <div
                   key={s.title}
@@ -326,7 +326,7 @@ export default function GenieRural() {
           </div>
 
           {/* Full-width image */}
-          <div className="h-64 md:h-80 overflow-hidden relative">
+          <div className="h-64 md:h-80 overflow-hidden relative rounded-2xl">
             <img
               src="/gc-hero-3.webp"
               alt="Voiries Owando — Foga-Tech Congo"
@@ -353,7 +353,7 @@ export default function GenieRural() {
               <img
                 src="/stockage-transformation.webp"
                 alt="Stockage & transformation — Foga-Tech"
-                className="relative z-10 w-full aspect-[4/3] object-cover shadow-tectonic-lg"
+                className="relative z-10 w-full aspect-[4/3] object-cover shadow-tectonic-lg rounded-2xl"
                 loading="lazy"
               />
               {/* Stats overlay */}
@@ -421,7 +421,7 @@ export default function GenieRural() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border border-outline-variant">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 border border-outline-variant rounded-2xl overflow-hidden">
             {ELEVAGE_ITEMS.map((c, i) => (
               <div
                 key={c.title}

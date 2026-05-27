@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 
 const ACTION = [
   { label: 'Demande de Devis', to: '/devis' },
@@ -25,9 +25,9 @@ const ENTREPRISE = [
 ]
 
 const SOCIAL = [
-  { icon: 'chat', href: 'https://wa.me/242069610635', label: 'WhatsApp' },
+  { icon: 'chat', href: 'https://wa.me/242069905640', label: 'WhatsApp' },
   { icon: 'mail', href: 'mailto:contact@foga-tech.com', label: 'Email' },
-  { icon: 'call', href: 'tel:+242069610635', label: 'Téléphone' },
+  { icon: 'call', href: 'tel:+242069905640', label: 'Téléphone' },
 ]
 
 export default function Footer() {
@@ -110,8 +110,8 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="tel:+242069610635" className="hover:text-secondary-container transition-colors">
-                  +242 06 961 06 35
+                <a href="tel:+242069905640" className="hover:text-secondary-container transition-colors">
+                  +242 06 990 56 40
                 </a>
               </li>
               <li>

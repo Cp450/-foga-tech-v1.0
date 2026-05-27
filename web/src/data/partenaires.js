@@ -29,7 +29,7 @@
   {
     id: "sinohydro",
     nom: "SINOHYDRO",
-    logo: "/logos-partenaires/sino_hydro.svg",
+    logo: "/logos-partenaires/sino_hydro.webp",
     secteur: "Transport & Logistique BTP",
     type: "Partenaire Technique",
     depuis: "2022",
@@ -42,7 +42,7 @@
   {
     id: "sonocc",
     nom: "SONOCC",
-    logo: "/logos-partenaires/sonocc.svg",
+    logo: "/logos-partenaires/sonocc.webp",
     secteur: "Transport & Matériaux",
     type: "Partenaire Logistique",
     depuis: "2024",

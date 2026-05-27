@@ -24,9 +24,9 @@ export default function SolutionsDurables() {
           {/* Layer 1 — Ken Burns 3 images */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             {[
-              { src: "/sd-hero-1.png", cls: "hb-1", eager: true },
-              { src: "/sd-hero-2.png", cls: "hb-2", eager: false },
-              { src: "/sd-hero-3.png", cls: "hb-3", eager: false },
+              { src: "/sd-hero-1.webp", cls: "hb-1", eager: true },
+              { src: "/sd-hero-2.webp", cls: "hb-2", eager: false },
+              { src: "/sd-hero-3.webp", cls: "hb-3", eager: false },
             ].map(({ src, cls, eager }) => (
               <img
                 key={src}

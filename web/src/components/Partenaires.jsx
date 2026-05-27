@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+﻿import { useState, useCallback } from "react";
 import { motion } from "framer-motion";
 import { PARTENAIRES } from "../data/partenaires";
 import PartenaireModal from "./PartenaireModal";
@@ -72,7 +72,7 @@ export default function Partenaires() {
         viewport={viewport}
       >
         <a
-          href="https://wa.me/242069610635?text=Bonjour%20Foga-Tech%2C%20je%20souhaite%20discuter%20d%27un%20partenariat."
+          href="https://wa.me/242069905640?text=Bonjour%20Foga-Tech%2C%20je%20souhaite%20discuter%20d%27un%20partenariat."
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2.5 border border-white/20 text-white/70 hover:text-white hover:border-[#4A7BC8]/60 font-label font-bold text-xs uppercase tracking-widest px-6 py-4 rounded-full transition-all duration-300"

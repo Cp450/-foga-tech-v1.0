@@ -1,7 +1,30 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+﻿import { useState, useEffect, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "../lib/cn";
 import MagneticButton from "./MagneticButton";
+
+/**
+ * NavLink — bouton qui navigue via useNavigate (bypass <a> tag).
+ * Workaround pour extensions navigateur (Adobe Acrobat, etc) qui interceptent
+ * les clics sur <a href> et bloquent React Router.
+ */
+function NavLink({ to, isActive, children }) {
+  const navigate = useNavigate();
+  return (
+    <button
+      type="button"
+      onClick={() => navigate(to)}
+      className={cn(
+        "font-headline font-bold text-xs uppercase tracking-widest pb-0.5 transition-colors duration-200 border-b-2 cursor-pointer bg-transparent whitespace-nowrap",
+        isActive
+          ? "text-on-primary border-secondary-container"
+          : "text-on-primary/60 border-transparent hover:text-on-primary",
+      )}
+    >
+      {children}
+    </button>
+  );
+}
 
 // Grouped service structure for the mega-menu
 const SERVICE_GROUPS = [
@@ -51,7 +74,7 @@ const MOBILE_ITEMS = [
   { label: "Contact", to: "/contact" },
 ];
 
-const WHATSAPP_URL = "https://wa.me/242069610635";
+const WHATSAPP_URL = "https://wa.me/242069905640";
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -122,15 +145,18 @@ export default function Navbar() {
   }
 
   return (
-    <header
+    <div
+      role="banner"
+      data-fogatech-nav
       className={cn(
-        "fixed top-0 w-full z-50 transition-all duration-300 border-b",
+        "fixed top-0 w-full z-[100] border-b transition-colors duration-300",
         scrolled
-          ? "bg-[#002045]/85 backdrop-blur-xl border-white/10 shadow-tectonic-lg"
-          : "bg-[#002045]/30 border-transparent",
+          ? "bg-[#002045]/95 border-white/10 shadow-tectonic-lg"
+          : "bg-[#002045]/85 border-transparent",
       )}
+      style={{ pointerEvents: "auto", isolation: "isolate" }}
     >
-      <nav aria-label="Main navigation" className="h-20">
+      <nav aria-label="Main navigation" className="h-20 relative" style={{ pointerEvents: "auto" }}>
         <div className="flex justify-between items-center max-w-7xl mx-auto px-4 sm:px-6 h-full gap-8">
 
           {/* Logo — icon + wordmark SVG */}
@@ -150,17 +176,7 @@ export default function Navbar() {
 
           {/* Desktop links */}
           <div className="hidden md:flex items-center gap-8 flex-1 justify-center">
-            <Link
-              to="/"
-              className={cn(
-                "font-headline font-bold text-xs uppercase tracking-widest pb-0.5 transition-colors duration-200 border-b-2",
-                isActive("/")
-                  ? "text-on-primary border-secondary-container"
-                  : "text-on-primary/60 border-transparent hover:text-on-primary",
-              )}
-            >
-              Accueil
-            </Link>
+            <NavLink to="/" isActive={isActive("/")}>Accueil</NavLink>
 
             {/* Services dropdown */}
             <div
@@ -295,41 +311,9 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link
-              to="/portfolio"
-              className={cn(
-                "font-headline font-bold text-xs uppercase tracking-widest pb-0.5 transition-colors duration-200 border-b-2",
-                isActive("/portfolio")
-                  ? "text-on-primary border-secondary-container"
-                  : "text-on-primary/60 border-transparent hover:text-on-primary",
-              )}
-            >
-              Portfolio
-            </Link>
-
-            <Link
-              to="/a-propos"
-              className={cn(
-                "font-headline font-bold text-xs uppercase tracking-widest pb-0.5 transition-colors duration-200 border-b-2",
-                isActive("/a-propos")
-                  ? "text-on-primary border-secondary-container"
-                  : "text-on-primary/60 border-transparent hover:text-on-primary",
-              )}
-            >
-              À propos
-            </Link>
-
-            <Link
-              to="/contact"
-              className={cn(
-                "font-headline font-bold text-xs uppercase tracking-widest pb-0.5 transition-colors duration-200 border-b-2",
-                isActive("/contact")
-                  ? "text-on-primary border-secondary-container"
-                  : "text-on-primary/60 border-transparent hover:text-on-primary",
-              )}
-            >
-              Contact
-            </Link>
+            <NavLink to="/portfolio" isActive={isActive("/portfolio")}>Portfolio</NavLink>
+            <NavLink to="/a-propos" isActive={isActive("/a-propos")}>À propos</NavLink>
+            <NavLink to="/contact" isActive={isActive("/contact")}>Contact</NavLink>
 
           </div>
 
@@ -428,6 +412,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-    </header>
+    </div>
   );
 }

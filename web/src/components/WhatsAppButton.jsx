@@ -1,4 +1,4 @@
-import { useLocation } from 'react-router-dom'
+﻿import { useLocation } from 'react-router-dom'
 
 const CONTEXT_MESSAGES = {
   engins: 'Bonjour, je voudrais louer un engin BTP - disponibilité immédiate?',
@@ -18,7 +18,7 @@ export default function WhatsAppButton() {
 
   return (
     <a
-      href={`https://wa.me/242069610635?text=${encodeURIComponent(msg)}`}
+      href={`https://wa.me/242069905640?text=${encodeURIComponent(msg)}`}
       target="_blank"
       rel="noopener noreferrer"
       className="hidden md:flex fixed bottom-6 right-6 z-50 bg-[#25D366] hover:bg-green-500 text-white rounded-full p-4 shadow-2xl transition-transform hover:scale-110 items-center gap-2"

@@ -1,5 +1,15 @@
 const puppeteer = require('puppeteer')
 
+// Sur KVM2 Ubuntu : apt install -y chromium-browser
+// puis définir PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser dans .env
+const PUPPETEER_OPTS = {
+  headless: 'new',
+  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+  ...(process.env.PUPPETEER_EXECUTABLE_PATH
+    ? { executablePath: process.env.PUPPETEER_EXECUTABLE_PATH }
+    : {}),
+}
+
 /**
  * Build HTML template — visuel identique au récap React (DemandeDevis Q5).
  * Logos servis depuis le frontend public via URL absolue passée en param.
@@ -125,10 +135,7 @@ body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a2535;background:#fff
 
 async function generatePdf(data) {
   const html = buildHtml(data)
-  const browser = await puppeteer.launch({
-    headless: 'new',
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
+  const browser = await puppeteer.launch(PUPPETEER_OPTS)
   try {
     const page = await browser.newPage()
     await page.setContent(html, { waitUntil: 'networkidle0' })

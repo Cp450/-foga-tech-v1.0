@@ -1,4 +1,4 @@
-import { useParams, Link, Navigate } from "react-router-dom";
+﻿import { useParams, Link, Navigate } from "react-router-dom";
 import SEO from "../components/SEO";
 import {
   IMG_PROJET_VILLA,
@@ -235,7 +235,7 @@ export default function PortfolioDetail() {
               Demander un devis
             </Link>
             <a
-              href={`https://wa.me/242069610635?text=${encodeURIComponent(projet.whatsapp_msg)}`}
+              href={`https://wa.me/242069905640?text=${encodeURIComponent(projet.whatsapp_msg)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block text-center text-on-primary/60 hover:text-secondary-container text-xs font-body underline-offset-4 hover:underline transition-colors"

@@ -17,9 +17,9 @@ export default function PartenairesPage() {
         {/* Layer 1 — Ken Burns 3 images (24s cycle) */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           {[
-            { src: "/partenaires-hero-1.png", cls: "pt-1", eager: true  },
-            { src: "/partenaires-hero-2.png", cls: "pt-2", eager: false },
-            { src: "/partenaires-hero-3.png", cls: "pt-3", eager: false },
+            { src: "/partenaires-hero-1.webp", cls: "pt-1", eager: true  },
+            { src: "/partenaires-hero-2.webp", cls: "pt-2", eager: false },
+            { src: "/partenaires-hero-3.webp", cls: "pt-3", eager: false },
           ].map(({ src, cls, eager }) => (
             <img
               key={src}

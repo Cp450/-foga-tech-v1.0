@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import CalculateurBudget from '../components/CalculateurBudget'
 import SEO from '../components/SEO'
@@ -31,10 +31,10 @@ const TRUST = [
 ]
 
 const REALISATIONS = [
-  { city: 'Pointe-Noire', title: 'Villa Atlantique F6', wide: true, img: '/segment-particulier.webp' },
-  { city: 'Brazzaville', title: 'Résidence Plateau', wide: false, img: '/batiment-tertiaire.webp' },
-  { city: 'Kintélé', title: 'Aménagement Intérieur F4', wide: false, img: '/portfolio-mayanga.webp' },
-  { city: 'Brazzaville', title: 'Complexe Résidentiel Moungali', wide: true, img: '/portfolio-hub-agricole.webp' },
+  { city: 'Pointe-Noire & Brazzaville', title: 'Hangars métalliques PNR + BZV', wide: true,  img: '/portfolio-hangar-pn.webp' },
+  { city: 'Brazzaville',                title: 'CHU-B Brazzaville',             wide: false, img: '/portfolio-chu.webp' },
+  { city: 'Kintélé',                    title: 'Université Denis Sassou N\'Guesso', wide: false, img: '/portfolio-udn.webp' },
+  { city: 'Brazzaville',                title: 'Projet Pep\'s — Base vie Mayanga', wide: true, img: '/portfolio-mayanga.webp' },
 ]
 
 export default function DevisParticulier() {
@@ -124,7 +124,7 @@ export default function DevisParticulier() {
       `${form.quartier}, ${form.localisation}\n` +
       `_____________________________`
     )
-    window.open(`https://wa.me/242069610635?text=${waMsg}`, '_blank')
+    window.open(`https://wa.me/242069905640?text=${waMsg}`, '_blank')
   }
 
   return (
@@ -487,14 +487,14 @@ export default function DevisParticulier() {
               Réalisations Foga-Tech
             </h2>
             <p className="text-on-surface-variant max-w-2xl mx-auto font-body">
-              Inspirez-vous de nos derniers projets réalisés pour des particuliers au Congo-Brazzaville.
+              L'expertise mobilisée sur nos grands chantiers est à votre service pour votre projet personnel.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
             {REALISATIONS.map((r) => (
               <div
                 key={r.title}
-                className={`relative overflow-hidden group shadow-lg ${r.wide ? 'md:col-span-2' : ''}`}
+                className={`relative overflow-hidden group shadow-lg rounded-2xl ${r.wide ? 'md:col-span-2' : ''}`}
               >
                 <img
                   src={r.img}

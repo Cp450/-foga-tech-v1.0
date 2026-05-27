@@ -136,7 +136,7 @@ export default function PartenaireModal({ partenaire, onClose }) {
         {/* Footer — fixe en bas */}
         <div className="flex-shrink-0 px-8 py-6 border-t border-white/10 flex items-center justify-between gap-4 bg-[#001634]">
           <a
-            href="https://wa.me/242069610635?text=Bonjour%20Foga-Tech%2C%20je%20souhaite%20devenir%20partenaire."
+            href="https://wa.me/242069905640?text=Bonjour%20Foga-Tech%2C%20je%20souhaite%20devenir%20partenaire."
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-[#234998] text-[#002045] font-headline font-black text-xs uppercase tracking-widest px-6 py-4 rounded-full hover:brightness-105 transition-all"

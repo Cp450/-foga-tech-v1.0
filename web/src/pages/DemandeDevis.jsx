@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 
@@ -326,7 +326,7 @@ export default function DemandeDevis() {
       <section className="relative h-[88vh] min-h-[540px] overflow-hidden flex flex-col">
         {/* Background image */}
         <img
-          src="/arriere_plan_devis.png"
+          src="/arriere_plan_devis.webp"
           alt=""
           aria-hidden="true"
           loading="eager"
@@ -668,7 +668,7 @@ export default function DemandeDevis() {
                   </div>
                   <p style={{ fontSize: 10, color: "#8a96a3", lineHeight: 1.6 }}>
                     Foga-Tech International · Congo-Brazzaville<br />
-                    Tél : +242 06 990 56 40 / 06 961 06 35<br />
+                    Tél : +242 06 990 56 40 / 06 990 56 40<br />
                     contact@foga-tech.com · foga-tech.com
                   </p>
                 </div>
@@ -693,7 +693,7 @@ export default function DemandeDevis() {
                   <p style={{ fontWeight: 700, fontSize: 12, color: "#001022" }}>Foga-Tech International</p>
                   <p style={{ fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
                     Brazzaville, Congo<br />
-                    +242 06 990 56 40 / 06 961 06 35<br />
+                    +242 06 990 56 40 / 06 990 56 40<br />
                     contact@foga-tech.com
                   </p>
                 </div>
@@ -774,7 +774,7 @@ export default function DemandeDevis() {
               {/* Footer document */}
               <div style={{ background: "#f7f9fb", borderTop: "1px solid #e8ecf0", borderRadius: "0 0 6px 6px", padding: "12px 32px", textAlign: "center" }}>
                 <p style={{ fontSize: 9, color: "#a0aab4" }}>
-                  Foga-Tech International · Brazzaville, Congo · +242 06 990 56 40 / 06 961 06 35 · contact@foga-tech.com · foga-tech.com
+                  Foga-Tech International · Brazzaville, Congo · +242 06 990 56 40 / 06 990 56 40 · contact@foga-tech.com · foga-tech.com
                 </p>
               </div>
             </div>
@@ -834,7 +834,7 @@ export default function DemandeDevis() {
             </p>
 
             <a
-              href={"https://wa.me/242069610635?text=" + buildWaMsg(form)}
+              href={"https://wa.me/242069905640?text=" + buildWaMsg(form)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-3 bg-[#25D366] text-white font-headline font-black px-10 py-5 rounded-2xl hover:brightness-110 active:scale-95 transition-all text-base uppercase tracking-widest mb-6"

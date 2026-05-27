@@ -1,4 +1,4 @@
-const CHEFS = [
+﻿const CHEFS = [
   {
     id: 1,
     nom: "Parfait Moukassa",
@@ -136,10 +136,10 @@ function ChefCard({ chef }) {
       </div>
 
       <a
-        href={`https://wa.me/242069610635?text=Bonjour%2C%20je%20voudrais%20travailler%20avec%20${encodeURIComponent(chef.nom)}%20sur%20mon%20projet`}
+        href={`https://wa.me/242069905640?text=Bonjour%2C%20je%20voudrais%20travailler%20avec%20${encodeURIComponent(chef.nom)}%20sur%20mon%20projet`}
         target="_blank"
         rel="noreferrer"
-        className={`w-full text-center text-sm py-2 font-semibold transition-colors ${chef.dispo ? rounded-full"bg-success text-on-success hover:bg-success/80" : "bg-surface text-on-surface-variant border border-outline-variant cursor-not-allowed"}`}
+        className={`w-full text-center text-sm py-2 font-semibold transition-colors ${chef.dispo ? "rounded-full bg-success text-on-success hover:bg-success/80" : "bg-surface text-on-surface-variant border border-outline-variant cursor-not-allowed"}`}
       >
         {chef.dispo ? "Demander ce chef →" : "Indisponible actuellement"}
       </a>

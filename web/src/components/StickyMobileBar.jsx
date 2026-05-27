@@ -1,10 +1,10 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 export default function StickyMobileBar() {
   return (
     <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#002045] border-t border-white/10 flex">
       <a
-        href="tel:+242069610635"
+        href="tel:+242069905640"
         className="flex-1 flex items-center gap-2 px-4 py-3 border-r border-white/10"
         aria-label="Appeler Foga-Tech"
       >
@@ -13,12 +13,12 @@ export default function StickyMobileBar() {
         </span>
         <div>
           <div className="text-[9px] uppercase tracking-widest text-white/45">Appeler</div>
-          <div className="font-headline font-extrabold text-[12px] text-white">+242 06 961 06 35</div>
+          <div className="font-headline font-extrabold text-[12px] text-white">+242 06 990 56 40</div>
         </div>
       </a>
 
       <a
-        href="https://wa.me/242069610635"
+        href="https://wa.me/242069905640"
         target="_blank"
         rel="noopener noreferrer"
         className="bg-[#25D366] text-white px-4 py-3 flex items-center gap-1.5 font-headline font-extrabold text-[11px] uppercase tracking-wider"

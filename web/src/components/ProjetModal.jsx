@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export default function ProjetModal({ projet, onClose }) {
@@ -207,7 +207,7 @@ export default function ProjetModal({ projet, onClose }) {
           {/* Footer — fixe en bas (DNA PartenaireModal) */}
           <div className="flex-shrink-0 px-8 py-6 border-t border-white/10 flex items-center justify-between gap-4 bg-[#001634]">
             <a
-              href={`https://wa.me/242069610635?text=${encodeURIComponent(
+              href={`https://wa.me/242069905640?text=${encodeURIComponent(
                 `Bonjour Foga-Tech, je souhaite un devis similaire au projet ${projet.title}.`
               )}`}
               target="_blank"

@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+﻿import { useState, useRef, useEffect } from 'react'
 import DOMPurify from 'dompurify'
 
 /* ─── FAQ data ────────────────────────────────────────────────────────────── */
@@ -20,7 +20,7 @@ const FAQS = [
   },
   {
     triggers: ['devis', 'prix', 'combien', 'cout', 'tarif', 'budget', 'estimation'],
-    response: 'Nos devis sont **offerts sous 48 h** après visite technique. Vous pouvez aussi utiliser notre [Calculateur Budget](#calculateur) sur la page d\'accueil pour une estimation immédiate.\n\nPour un devis précis, envoyez-nous votre projet sur WhatsApp → +242 06 961 06 35',
+    response: 'Nos devis sont **offerts sous 48 h** après visite technique. Vous pouvez aussi utiliser notre [Calculateur Budget](#calculateur) sur la page d\'accueil pour une estimation immédiate.\n\nPour un devis précis, envoyez-nous votre projet sur WhatsApp → +242 06 990 56 40',
     lingala: 'Devis na biso ezali ya ofele (gratuit). Tokosala estimasyon na 48 h.',
   },
   {
@@ -30,7 +30,7 @@ const FAQS = [
   },
   {
     triggers: ['délai', 'temps', 'durée', 'combien de temps', 'quand', 'planning'],
-    response: 'Chaque chantier est unique — la durée dépend de plusieurs paramètres :\n• **Surface** et complexité technique\n• **Accessibilité** du site & logistique\n• **Saison** (sèche/pluies) et approvisionnement\n• Normes spécifiques (santé, ERP, industriel)\n\nNous nous engageons sur :\n• **Planning contractuel** détaillé au devis\n• **Reporting hebdomadaire** d\'avancement\n• Délais **fermes par écrit** dans le contrat\n\nPour une estimation précise, consultez notre [page devis](/devis) ou contactez-nous : **WhatsApp +242 06 961 06 35**',
+    response: 'Chaque chantier est unique — la durée dépend de plusieurs paramètres :\n• **Surface** et complexité technique\n• **Accessibilité** du site & logistique\n• **Saison** (sèche/pluies) et approvisionnement\n• Normes spécifiques (santé, ERP, industriel)\n\nNous nous engageons sur :\n• **Planning contractuel** détaillé au devis\n• **Reporting hebdomadaire** d\'avancement\n• Délais **fermes par écrit** dans le contrat\n\nPour une estimation précise, consultez notre [page devis](/devis) ou contactez-nous : **WhatsApp +242 06 990 56 40**',
     lingala: 'Tango ya travaux ezali na variables mingi. Tokoyebisa yo planning ya solo na devis.',
   },
   {
@@ -45,13 +45,13 @@ const FAQS = [
   },
   {
     triggers: ['énergie', 'solaire', 'panneau', 'durable', 'écologie', 'environnement', 'vert'],
-    response: 'Foga-Tech intègre des solutions durables dans ses chantiers :\n• **Panneaux solaires** pour alimenter les sites isolés\n• **Gestion de l\'eau** — forages, retenues, irrigation\n• **Matériaux locaux** privilégiés pour réduire l\'empreinte carbone\n\nPour un projet intégrant ces solutions : **WhatsApp +242 06 961 06 35**',
+    response: 'Foga-Tech intègre des solutions durables dans ses chantiers :\n• **Panneaux solaires** pour alimenter les sites isolés\n• **Gestion de l\'eau** — forages, retenues, irrigation\n• **Matériaux locaux** privilégiés pour réduire l\'empreinte carbone\n\nPour un projet intégrant ces solutions : **WhatsApp +242 06 990 56 40**',
     lingala: 'Biso tozali kozua solutions durables na misala na biso — soleil, mai, materiaux ya Congo.',
   },
   {
     triggers: ['whatsapp', 'contact', 'telephone', 'appel', 'joindre', 'numéro'],
-    response: 'Nous joindre :\n• **WhatsApp** : +242 06 961 06 35\n• **Réponse garantie** sous 15 minutes (heures ouvrées)\n• Disponible 7j/7 pour les urgences chantier',
-    lingala: 'WhatsApp: +242 06 961 06 35. Tokoyanola na 15 minutes.',
+    response: 'Nous joindre :\n• **WhatsApp** : +242 06 990 56 40\n• **Réponse garantie** sous 15 minutes (heures ouvrées)\n• Disponible 7j/7 pour les urgences chantier',
+    lingala: 'WhatsApp: +242 06 990 56 40. Tokoyanola na 15 minutes.',
   },
   {
     triggers: ['brazzaville', 'congo', 'pointe-noire', 'zone', 'région', 'où', 'localisation'],
@@ -84,7 +84,7 @@ function getBotResponse(input) {
   }
   if (THANKS.some((t) => lower.includes(t))) {
     return {
-      text: "Avec plaisir! N'hésitez pas si vous avez d'autres questions.\n\nPour un accompagnement personnalisé : **WhatsApp +242 06 961 06 35**",
+      text: "Avec plaisir! N'hésitez pas si vous avez d'autres questions.\n\nPour un accompagnement personnalisé : **WhatsApp +242 06 990 56 40**",
       lingala: null,
     }
   }
@@ -101,8 +101,8 @@ function getBotResponse(input) {
   if (best) return { text: best.response, lingala: best.lingala }
 
   return {
-    text: "Je n'ai pas encore d'info précise sur ce sujet. Voici ce que je sais répondre :\n\n• **Qui sommes-nous** — Foga-Tech, métiers, équipe\n• **Nos services** — civil, rural, location engins\n• **Devis & tarifs** — délais, paiement, MoMo\n• **Délais & planning** — durée chantier\n• **Certifications** — agréments, normes\n• **Localisation** — Brazzaville, Pool, Pointe-Noire\n• **Portfolio** — nos réalisations\n\nOu directement notre équipe :\n**WhatsApp** : +242 06 961 06 35 — réponse sous 24h.",
-    lingala: 'Nazali na info te likolo ya likambo oyo. Tuna ngai na sujet mosusu, to benga WhatsApp: +242 06 961 06 35.',
+    text: "Je n'ai pas encore d'info précise sur ce sujet. Voici ce que je sais répondre :\n\n• **Qui sommes-nous** — Foga-Tech, métiers, équipe\n• **Nos services** — civil, rural, location engins\n• **Devis & tarifs** — délais, paiement, MoMo\n• **Délais & planning** — durée chantier\n• **Certifications** — agréments, normes\n• **Localisation** — Brazzaville, Pool, Pointe-Noire\n• **Portfolio** — nos réalisations\n\nOu directement notre équipe :\n**WhatsApp** : +242 06 990 56 40 — réponse sous 24h.",
+    lingala: 'Nazali na info te likolo ya likambo oyo. Tuna ngai na sujet mosusu, to benga WhatsApp: +242 06 990 56 40.',
   }
 }
 
@@ -291,7 +291,7 @@ export default function ChatbotFoga() {
             </div>
 
             <a
-              href="https://wa.me/242069610635?text=Bonjour%2C%20je%20viens%20du%20chat%20Foga-Tech%20BTP"
+              href="https://wa.me/242069905640?text=Bonjour%2C%20je%20viens%20du%20chat%20Foga-Tech%20BTP"
               target="_blank"
               rel="noreferrer"
               aria-label="Contacter sur WhatsApp"

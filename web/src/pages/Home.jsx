@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import StickyCTABar from "../components/StickyCTABar";
@@ -274,7 +274,7 @@ export default function Home() {
   return (
     <>
       <SEO
-        title="Foga-Tech BTP — Bâtisseurs du Congo, livrés à temps"
+        title="Foga-Tech International — Ingénierie BTP de référence au Congo"
         description="Génie civil, bâtiment, génie rural et location d'engins à Brazzaville et Pointe-Noire. +15 chantiers livrés, 98% de satisfaction client depuis 2012."
         canonical="https://foga-tech.com"
       />
@@ -413,7 +413,7 @@ export default function Home() {
           {[
             "★ Devis offert sous 48 h",
             "★ Garantie décennale incluse",
-            "★ WhatsApp +242 06 961 06 35",
+            "★ WhatsApp +242 06 990 56 40",
           ].map((item, i, arr) => (
             <span key={i} className="flex items-center gap-8 flex-shrink-0">
               {item}

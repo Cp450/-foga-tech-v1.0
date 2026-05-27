@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import TextReveal from '../components/TextReveal'
@@ -30,8 +30,8 @@ const DIRECTS = [
   {
     icon: 'chat',
     label: 'WhatsApp',
-    value: '+242 06 961 06 35',
-    href: 'https://wa.me/242069610635?text=Bonjour%20Foga-Tech',
+    value: '+242 06 990 56 40',
+    href: 'https://wa.me/242069905640?text=Bonjour%20Foga-Tech',
     note: 'Reponse < 15 min · 7j/7',
     highlight: true,
   },
@@ -73,7 +73,7 @@ export default function Contact() {
     const msg = encodeURIComponent(
       `*Contact Foga-Tech*\n\nNom: ${form.nom}\nEmail: ${form.email}\nSujet: ${form.sujet}\n\n${form.message}`
     )
-    window.open(`https://wa.me/242069610635?text=${msg}`, '_blank')
+    window.open(`https://wa.me/242069905640?text=${msg}`, '_blank')
     setSent(true)
   }
 

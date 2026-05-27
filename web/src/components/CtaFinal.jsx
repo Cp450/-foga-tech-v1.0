@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { IMG_HERO_DEVIS } from "../lib/images";
 import { fadeUp, fadeLeft, stagger, viewport } from "../lib/motion";
@@ -100,7 +100,7 @@ export default function CtaFinal() {
             <motion.div variants={fadeUp}>
               <MagneticButton strength={0.18}>
                 <a
-                  href="https://wa.me/242069610635"
+                  href="https://wa.me/242069905640"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 bg-transparent border-2 border-white/40 text-white font-headline font-bold uppercase text-xs tracking-widest px-8 py-5 hover:bg-white/10 hover:border-white transition-colors rounded-full"
@@ -112,7 +112,7 @@ export default function CtaFinal() {
                 >
                   chat
                 </span>
-                WhatsApp · +242 06 961 06 35
+                WhatsApp · +242 06 990 56 40
                 </a>
               </MagneticButton>
             </motion.div>

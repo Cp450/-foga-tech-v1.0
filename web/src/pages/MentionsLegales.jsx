@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 
 export default function MentionsLegales() {
@@ -26,7 +26,7 @@ export default function MentionsLegales() {
             <p><strong>RCCM :</strong> CG/BZV/17B6964</p>
             <p><strong>NIU :</strong> M2017110000375160</p>
             <p><strong>Directeur de publication :</strong> Direction générale — Foga-Tech International</p>
-            <p><strong>Contact :</strong> contact@foga-tech.com | +242 06 961 06 35 / +242 06 990 56 40</p>
+            <p><strong>Contact :</strong> contact@foga-tech.com | +242 06 990 56 40 / +242 06 990 56 40</p>
           </div>
         </section>
 

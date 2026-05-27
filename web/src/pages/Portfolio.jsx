@@ -171,7 +171,7 @@ const PROJETS = [
     duree: "18 mois",
     desc: "Transport d'agrégats pour la construction routière sur l'axe Boundji-Ewo (2022-2023).",
     image: "/portfolio-boundji-ewo.webp",
-    logo: "/logos-partenaires/sino_hydro.svg",
+    logo: "/logos-partenaires/sino_hydro.webp",
     travaux: [
       "Mobilisation flotte bennes 15-20T",
       "Rotation agrégats carrière → chantier",
@@ -228,7 +228,7 @@ const PROJETS = [
     duree: "12 mois",
     desc: "Transport de calcaire depuis la carrière vers le site de production SONOCC à Loutété.",
     image: "/portfolio-loutete.webp",
-    logo: "/logos-partenaires/sonocc.svg",
+    logo: "/logos-partenaires/sonocc.webp",
     travaux: [
       "Mobilisation flotte poids lourds dédiée",
       "Rotation calcaire carrière → cimenterie",

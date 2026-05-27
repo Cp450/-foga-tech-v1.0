@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+﻿import { useState, useMemo } from "react";
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 const BG = "#001022";
@@ -487,7 +487,7 @@ export default function CalculateurBudget() {
 
             {/* CTA WhatsApp */}
             <a
-              href={`https://wa.me/242069610635?text=${waMsg}`}
+              href={`https://wa.me/242069905640?text=${waMsg}`}
               target="_blank"
               rel="noreferrer"
               className="flex items-center justify-center gap-2 w-full font-bold py-4 rounded-full text-white transition-opacity hover:opacity-90"

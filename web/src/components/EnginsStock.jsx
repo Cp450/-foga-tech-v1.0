@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { api } from "../lib/api";
 
 const FALLBACK_STOCK = [
@@ -166,7 +166,7 @@ export default function EnginsStock() {
               </div>
               <StockBar available={e.available} total={e.total} />
               <a
-                href={`https://wa.me/242069610635?text=${encodeURIComponent(waMsg(e.name, e.price))}`}
+                href={`https://wa.me/242069905640?text=${encodeURIComponent(waMsg(e.name, e.price))}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="mt-4 block w-full text-center bg-secondary-container/10 border border-secondary-container/30 hover:bg-secondary-container text-secondary-container hover:text-on-secondary-container text-sm font-semibold py-2 transition-all rounded-full"
@@ -188,7 +188,7 @@ export default function EnginsStock() {
             </p>
           </div>
           <a
-            href={`https://wa.me/242069610635?text=${encodeURIComponent("URGENT - J'ai besoin d'un engin BTP immédiatement pour mon chantier.")}`}
+            href={`https://wa.me/242069905640?text=${encodeURIComponent("URGENT - J'ai besoin d'un engin BTP immédiatement pour mon chantier.")}`}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 bg-red-600 hover:bg-red-500 text-white font-bold px-6 py-3 text-sm transition-colors rounded-full"
