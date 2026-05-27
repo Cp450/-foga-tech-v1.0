@@ -1,8 +1,11 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../db')
-const { generatePdf } = require('../lib/pdf')
 const { sendDevisEmail } = require('../lib/mailer')
+
+function generatePdf() {
+  return Promise.reject(new Error('PDF temporairement désactivé'))
+}
 
 function makeReference() {
   const y = new Date().getFullYear()
