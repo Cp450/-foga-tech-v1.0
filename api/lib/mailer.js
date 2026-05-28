@@ -143,9 +143,10 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- FOOTER -->
       <tr>
         <td style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
-          <div style="color:#9ca3af;font-size:12px;line-height:1.6;">
-            <span style="color:#234998;font-weight:700;">FOGA</span><span style="color:#828383;font-weight:700;">-TECH</span> International<br>
-            <span style="color:#828383;">06990 056 40</span><br>
+          <div style="color:#828383;font-size:12px;line-height:1.8;">
+            <span style="color:#234998;font-weight:700;">FOGA-TECH</span> International<br>
+            Tél. : (+242) 06.990.56.40 &nbsp;|&nbsp; (+242) 05.669.49.20<br>
+            foga.technology@gmail.com<br>
             <span style="color:#d1d5db;">DV-${esc(reference)} &middot; ${dateStr}</span>
           </div>
         </td>
