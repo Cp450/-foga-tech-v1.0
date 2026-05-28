@@ -1,153 +1,199 @@
-const puppeteer = require('puppeteer-core')
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib')
 
-// Sur KVM2 Ubuntu : apt install -y chromium-browser
-// PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser dans .env
-const CHROMIUM_PATH = process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser'
+const W = 595.28
+const H = 841.89
+const M = 40 // margin
 
-const PUPPETEER_OPTS = {
-  headless: 'new',
-  executablePath: CHROMIUM_PATH,
-  args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'],
+function hex(h) {
+  return rgb(
+    parseInt(h.slice(1, 3), 16) / 255,
+    parseInt(h.slice(3, 5), 16) / 255,
+    parseInt(h.slice(5, 7), 16) / 255
+  )
 }
 
-/**
- * Build HTML template — visuel identique au récap React (DemandeDevis Q5).
- * Logos servis depuis le frontend public via URL absolue passée en param.
- */
-function buildHtml(data) {
-  const {
-    reference,
-    dateStr,
-    validityStr,
-    nom = '—',
-    tel = '—',
-    profile = '—',
-    categorie = '—',
-    zone = '',
-    ville = '',
-    description = '—',
-    publicBase = '', // ex: https://foga-tech.com
-  } = data
+const C = {
+  navy:   hex('#001022'),
+  orange: hex('#FF6B00'),
+  blue:   hex('#234998'),
+  gray:   hex('#6b7280'),
+  lgray:  hex('#9ca3af'),
+  border: hex('#e5e7eb'),
+  bg:     hex('#f8fafc'),
+}
 
-  const localisation = [zone, ville].filter(Boolean).join(', ') || '—'
-  const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]))
+function wrapText(text, font, size, maxW) {
+  const str = String(text || '—').replace(/\r\n|\r/g, '\n')
+  const paragraphs = str.split('\n')
+  const lines = []
+  for (const para of paragraphs) {
+    const words = para.split(' ')
+    let cur = ''
+    for (const w of words) {
+      const test = cur ? `${cur} ${w}` : w
+      if (font.widthOfTextAtSize(test, size) > maxW && cur) {
+        lines.push(cur)
+        cur = w
+      } else {
+        cur = test
+      }
+    }
+    if (cur) lines.push(cur)
+  }
+  return lines.length ? lines : ['—']
+}
 
-  return `<!doctype html>
-<html lang="fr"><head><meta charset="utf-8"><style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Helvetica Neue',Arial,sans-serif;color:#1a2535;background:#fff;padding:0;}
-.doc{width:100%;background:#fff;}
-.band{height:4px;background:#FF6B00;}
-.header{padding:20px 32px;border-bottom:2px solid #001022;display:flex;justify-content:space-between;align-items:flex-start;}
-.logo-row{display:flex;align-items:center;gap:8px;}
-.logo-row img{height:42px;}
-.sep{width:1px;height:24px;background:rgba(0,16,34,0.25);}
-.brand-sub{font-size:9px;font-weight:700;color:#001022;text-transform:uppercase;letter-spacing:0.12em;margin-top:8px;}
-.brand-info{font-size:10px;color:#4a5568;line-height:1.6;margin-top:6px;}
-.devis-tag{text-align:right;}
-.devis-tag h1{font-size:22px;font-weight:900;color:#001022;letter-spacing:-0.02em;}
-.devis-tag p{font-size:10px;color:#8a96a3;margin-top:4px;line-height:1.5;}
-.meta{display:grid;grid-template-columns:1fr 1fr;padding:18px 32px;gap:24px;border-bottom:1px solid #e8ecf0;}
-.meta h3{font-size:9px;font-weight:700;color:#001022;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
-.meta p{font-size:11px;color:#4a5568;line-height:1.6;}
-.meta .name{font-size:13px;font-weight:700;color:#001022;}
-.table-wrap{padding:14px 32px 6px;}
-.thead{display:grid;grid-template-columns:2fr 1fr 1fr;padding-bottom:6px;border-bottom:2px solid #001022;}
-.thead p{font-size:9px;font-weight:700;color:#001022;text-transform:uppercase;letter-spacing:0.08em;}
-.row{display:grid;grid-template-columns:2fr 1fr 1fr;padding:10px 0;border-bottom:1px solid #e8ecf0;align-items:start;}
-.row .c1{font-size:11px;color:#1a2535;font-weight:600;overflow-wrap:anywhere;padding-right:12px;}
-.row .c2,.row .c3{font-size:11px;color:#4a5568;overflow-wrap:anywhere;padding-right:12px;}
-.desc{margin:12px 32px 0;padding:10px 12px;background:#f7f9fb;border-radius:4px;border-left:3px solid #FF6B00;}
-.desc h4{font-size:9px;font-weight:700;color:#8a96a3;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
-.desc p{font-size:11px;color:#4a5568;line-height:1.6;overflow-wrap:anywhere;white-space:pre-wrap;}
-.sig{padding:18px 32px;border-top:1px solid #e8ecf0;margin-top:18px;}
-.sig h4{font-size:9px;font-weight:700;color:#001022;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px;}
-.sig p{font-size:9px;color:#8a96a3;font-style:italic;line-height:1.6;}
-.footer{padding:14px 32px;background:#001022;color:#fff;font-size:9px;text-align:center;letter-spacing:0.05em;}
-.footer span{opacity:0.6;}
-</style></head><body>
-<div class="doc">
-  <div class="band"></div>
-  <div class="header">
-    <div>
-      <div class="logo-row">
-        ${publicBase ? `<img src="${publicBase}/icon_logo_entreprise.svg" alt=""/>
-        <span class="sep"></span>
-        <img src="${publicBase}/logo_entreprise_2.svg" alt=""/>` : `<strong style="font-size:18px;color:#001022;">Foga-Tech BTP</strong>`}
-      </div>
-      <p class="brand-sub">Foga-Tech International · Congo-Brazzaville</p>
-      <p class="brand-info">
-        Tél : +242 06 990 56 40 / 06 961 06 35<br/>
-        contact@foga-tech.com · foga-tech.com
-      </p>
-    </div>
-    <div class="devis-tag">
-      <h1>DEVIS — ${esc(reference)}</h1>
-      <p>Date : ${esc(dateStr)}<br/>Validité : ${esc(validityStr)}</p>
-    </div>
-  </div>
-
-  <div class="meta">
-    <div>
-      <h3>De</h3>
-      <p class="name">Foga-Tech International</p>
-      <p>Brazzaville, Congo<br/>+242 06 990 56 40 / 06 961 06 35<br/>contact@foga-tech.com</p>
-    </div>
-    <div>
-      <h3>Demandeur</h3>
-      <p class="name">${esc(nom)}</p>
-      <p>${esc(tel)}<br/>${esc(profile)}</p>
-    </div>
-  </div>
-
-  <div class="table-wrap">
-    <div class="thead">
-      <p>Description</p><p>Localisation</p><p>Profil</p>
-    </div>
-    <div class="row">
-      <p class="c1">${esc(categorie)}</p>
-      <p class="c2">${esc(localisation)}</p>
-      <p class="c3">${esc(profile)}</p>
-    </div>
-    <div class="row">
-      <p class="c1">Localisation chantier</p>
-      <p class="c2">${esc(localisation)}</p>
-      <p class="c3">—</p>
-    </div>
-  </div>
-
-  <div class="desc">
-    <h4>Description du projet</h4>
-    <p>${esc(description)}</p>
-  </div>
-
-  <div class="sig">
-    <h4>Confirmation du demandeur</h4>
-    <p>En soumettant cette demande, le demandeur certifie l'exactitude des informations renseignées et autorise Foga-Tech International à les traiter dans le cadre de l'établissement d'un devis personnalisé.</p>
-  </div>
-
-  <div class="footer">DV-${esc(reference)} · foga-tech.com · <span>Document généré automatiquement</span></div>
-</div>
-</body></html>`
+function fit(text, font, size, maxW) {
+  const str = String(text || '—')
+  if (font.widthOfTextAtSize(str, size) <= maxW) return str
+  let s = str
+  while (s.length > 1 && font.widthOfTextAtSize(s + '…', size) > maxW) s = s.slice(0, -1)
+  return s + '…'
 }
 
 async function generatePdf(data) {
-  const html = buildHtml(data)
-  const browser = await puppeteer.launch(PUPPETEER_OPTS)
-  try {
-    const page = await browser.newPage()
-    await page.setContent(html, { waitUntil: 'networkidle0' })
-    const pdf = await page.pdf({
-      format: 'A4',
-      printBackground: true,
-      margin: { top: '0', right: '0', bottom: '0', left: '0' },
-    })
-    return pdf
-  } finally {
-    await browser.close()
+  const {
+    reference = '—', dateStr = '—', validityStr = '—',
+    nom = '—', tel = '—', profile = '—', email = '',
+    categorie = '—', zone = '', ville = '', description = '—',
+    budget = '', surface = '',
+  } = data
+
+  const loc = [zone, ville].filter(Boolean).join(', ') || '—'
+
+  const doc = await PDFDocument.create()
+  doc.setTitle(`Devis ${reference} — Foga-Tech International`)
+  doc.setAuthor('Foga-Tech International')
+
+  const page = doc.addPage([W, H])
+  const R = await doc.embedFont(StandardFonts.Helvetica)
+  const B = await doc.embedFont(StandardFonts.HelveticaBold)
+
+  const t = ({ text, x, y, size = 9, font = R, color = C.navy }) =>
+    page.drawText(String(text ?? '—'), { x, y, size, font, color })
+
+  const box = (x, y, w, h, color) =>
+    page.drawRectangle({ x, y, width: w, height: h, color })
+
+  const ln = (x1, y1, x2, y2, color = C.border, thickness = 0.5) =>
+    page.drawLine({ start: { x: x1, y: y1 }, end: { x: x2, y: y2 }, color, thickness })
+
+  const rj = (text, rightX, y, size, font = R, color = C.navy) => {
+    const w = font.widthOfTextAtSize(String(text), size)
+    t({ text, x: rightX - w, y, size, font, color })
   }
+
+  // ─── ORANGE TOP BAND ──────────────────────────────────────
+  box(0, H - 5, W, 5, C.orange)
+
+  // ─── HEADER ───────────────────────────────────────────────
+  t({ text: 'Foga-Tech International', x: M, y: H - 30, size: 15, font: B })
+  t({ text: 'BTP · Génie Civil · Génie Rural · Location Engins', x: M, y: H - 44, size: 8, color: C.gray })
+  t({ text: '+242 06 990 56 40  |  contact@foga-tech.com', x: M, y: H - 55, size: 8, color: C.gray })
+  t({ text: 'Brazzaville, Congo-Brazzaville', x: M, y: H - 66, size: 8, color: C.gray })
+
+  rj(`DEVIS — ${reference}`, W - M, H - 30, 16, B)
+  rj(`Date : ${dateStr}`, W - M, H - 47, 8, R, C.gray)
+  rj(`Validité : ${validityStr}`, W - M, H - 58, 8, R, C.gray)
+
+  ln(M, H - 80, W - M, H - 80, C.navy, 1.5)
+
+  // ─── DE / DEMANDEUR ───────────────────────────────────────
+  let y = H - 100
+
+  t({ text: 'DE', x: M, y, size: 7, font: B, color: C.lgray })
+  t({ text: 'DEMANDEUR', x: W / 2, y, size: 7, font: B, color: C.lgray })
+
+  y -= 14
+  t({ text: 'Foga-Tech International', x: M, y, size: 10, font: B })
+  t({ text: fit(nom, B, 10, 230), x: W / 2, y, size: 10, font: B })
+
+  y -= 13
+  t({ text: 'Brazzaville, Congo', x: M, y, size: 8, color: C.gray })
+  t({ text: fit(tel, R, 8, 230), x: W / 2, y, size: 8, color: C.gray })
+
+  y -= 11
+  t({ text: '+242 06 990 56 40 / 06 961 06 35', x: M, y, size: 8, color: C.gray })
+  const contactLine = email ? fit(email, R, 8, 230) : fit(profile, R, 8, 230)
+  t({ text: contactLine, x: W / 2, y, size: 8, color: C.gray })
+
+  y -= 24
+  ln(M, y + 10, W - M, y + 10, C.border)
+
+  // ─── TABLE ────────────────────────────────────────────────
+  y -= 8
+
+  const col2 = M + 220
+  const col3 = M + 375
+
+  // Table header
+  box(M, y - 2, W - 2 * M, 18, hex('#eef2ff'))
+  t({ text: 'DESCRIPTION', x: M + 6, y: y + 2, size: 7.5, font: B, color: C.blue })
+  t({ text: 'LOCALISATION', x: col2 + 6, y: y + 2, size: 7.5, font: B, color: C.blue })
+  t({ text: 'PROFIL', x: col3 + 6, y: y + 2, size: 7.5, font: B, color: C.blue })
+  ln(M, y - 2, W - M, y - 2, C.navy, 1)
+  ln(M, y + 16, W - M, y + 16, C.navy, 1)
+
+  y -= 20
+
+  // Row 1
+  t({ text: fit(categorie, R, 9, 212), x: M + 6, y: y + 4, size: 9 })
+  t({ text: fit(loc, R, 9, 147), x: col2 + 6, y: y + 4, size: 9 })
+  t({ text: fit(profile, R, 9, 110), x: col3 + 6, y: y + 4, size: 9 })
+
+  y -= 18
+  ln(M, y + 18, W - M, y + 18, C.border)
+
+  // Row 2: budget / surface
+  if (budget || surface) {
+    t({ text: 'Infos complémentaires', x: M + 6, y: y + 4, size: 8, color: C.gray })
+    if (budget) t({ text: fit(String(budget), R, 8, 147), x: col2 + 6, y: y + 4, size: 8, color: C.gray })
+    if (surface) t({ text: `${surface} m²`, x: col3 + 6, y: y + 4, size: 8, color: C.gray })
+    y -= 18
+    ln(M, y + 18, W - M, y + 18, C.border)
+  }
+
+  // ─── DESCRIPTION ──────────────────────────────────────────
+  y -= 22
+  t({ text: 'DESCRIPTION DU PROJET', x: M, y, size: 7.5, font: B, color: C.lgray })
+  y -= 12
+
+  const descLines = wrapText(description, R, 8.5, W - 2 * M - 26)
+  const maxLines = Math.min(descLines.length, 15)
+  const descH = maxLines * 13 + 20
+
+  box(M, y - descH, W - 2 * M, descH, C.bg)
+  box(M, y - descH, 3, descH, C.orange)
+  ln(M, y, W - M, y, C.border)
+  ln(M, y - descH, W - M, y - descH, C.border)
+  ln(W - M, y - descH, W - M, y, C.border)
+
+  let dy = y - 13
+  for (let i = 0; i < maxLines; i++) {
+    t({ text: descLines[i], x: M + 10, y: dy, size: 8.5, color: C.gray })
+    dy -= 13
+  }
+
+  y -= descH + 22
+
+  // ─── SIGNATURE ────────────────────────────────────────────
+  box(M, y - 44, W - 2 * M, 44, C.bg)
+  ln(M, y - 44, W - M, y - 44, C.border)
+  ln(M, y, W - M, y, C.border)
+  ln(M, y - 44, M, y, C.border)
+  ln(W - M, y - 44, W - M, y, C.border)
+  t({ text: 'CONFIRMATION DU DEMANDEUR', x: M + 10, y: y - 14, size: 7.5, font: B })
+  t({ text: "En soumettant cette demande, le demandeur certifie l'exactitude des informations renseignées", x: M + 10, y: y - 27, size: 7.5, color: C.gray })
+  t({ text: "et autorise Foga-Tech International à les traiter dans le cadre de l'établissement d'un devis.", x: M + 10, y: y - 38, size: 7.5, color: C.gray })
+
+  // ─── FOOTER ───────────────────────────────────────────────
+  box(0, 0, W, 28, C.navy)
+  const footerStr = `${reference}  ·  foga-tech.com  ·  Document généré automatiquement`
+  const fw = R.widthOfTextAtSize(footerStr, 7.5)
+  t({ text: footerStr, x: (W - fw) / 2, y: 9, size: 7.5, color: rgb(0.65, 0.65, 0.65) })
+
+  const pdfBytes = await doc.save()
+  return Buffer.from(pdfBytes)
 }
 
-module.exports = { generatePdf, buildHtml }
+module.exports = { generatePdf, buildHtml: () => '' }
