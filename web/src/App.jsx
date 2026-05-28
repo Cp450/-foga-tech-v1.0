@@ -27,6 +27,7 @@ const PolitiqueConfidentialite = lazy(() => import('./pages/PolitiqueConfidentia
 const CGU                  = lazy(() => import('./pages/CGU'))
 const Contact              = lazy(() => import('./pages/Contact'))
 const APropos              = lazy(() => import('./pages/APropos'))
+const NotFound             = lazy(() => import('./pages/NotFound'))
 
 function PageLoader() {
   return (
@@ -105,35 +106,3 @@ export default function App() {
   )
 }
 
-function NotFound() {
-  return (
-    <main className="min-h-screen bg-surface flex items-center justify-center px-6 py-24">
-      <div className="text-center max-w-md animate-fade-slide-up">
-        <p className="font-headline font-black text-secondary-container text-8xl md:text-9xl leading-none mb-6 tracking-tighter">
-          404
-        </p>
-        <h1 className="font-headline text-3xl md:text-4xl font-black text-primary mb-4 leading-tight">
-          Page introuvable
-        </h1>
-        <p className="text-on-surface-variant font-body mb-10 leading-relaxed">
-          Cette page n'existe pas ou a été déplacée. Continuez votre navigation depuis l'accueil ou contactez-nous.
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <a
-            href="/"
-            className="inline-flex items-center justify-center gap-2 bg-secondary-container text-on-secondary-container font-headline font-black px-8 py-4 uppercase tracking-widest text-xs hover:brightness-110 transition-all rounded-full"
-          >
-            <span className="material-symbols-outlined text-base" aria-hidden="true">home</span>
-            Accueil
-          </a>
-          <a
-            href="/contact"
-            className="inline-flex items-center justify-center gap-2 border border-primary text-primary font-headline font-bold px-8 py-4 uppercase tracking-widest text-xs hover:bg-primary hover:text-white transition-all rounded-full"
-          >
-            Contact
-          </a>
-        </div>
-      </div>
-    </main>
-  )
-}
