@@ -379,4 +379,167 @@ async function sendClientConfirmation(clientEmail, data) {
   })
 }
 
-module.exports = { sendDevisEmail, sendClientConfirmation, getTransport }
+/**
+ * Notification interne — nouveau message de contact.
+ */
+async function sendContactNotification({ nom, email, sujet, message }) {
+  const transport = getTransport()
+  const to = process.env.CONTACT_TO || process.env.DEVIS_TO || 'contact@foga-tech.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.tech'
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <!-- HEADER -->
+      <tr>
+        <td style="background:#ffffff;padding:20px 32px;border-bottom:2px solid #FF6B00;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="vertical-align:middle;">
+                <div style="color:#FF6B00;font-size:18px;font-weight:700;">Nouveau message de contact</div>
+                <div style="color:#828383;font-size:13px;margin-top:4px;">${dateStr} à ${timeStr}</div>
+                <div style="margin-top:8px;"><span style="background:#FF6B00;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;">À traiter</span></div>
+              </td>
+              <td align="right" style="vertical-align:middle;width:160px;">
+                <img src="${apiBase}/public/logo_email.png" alt="Foga-Tech" width="150" style="display:block;border:0;max-width:150px;">
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <!-- SECTION: EXPÉDITEUR -->
+      <tr>
+        <td style="padding:24px 32px 0;">
+          <div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Expéditeur</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            ${row('Nom', `<strong>${esc(nom)}</strong>`)}
+            ${email ? row('Email', `<a href="mailto:${esc(email)}" style="color:#234998;text-decoration:none;">${esc(email)}</a>`) : ''}
+            ${sujet ? row('Sujet', esc(sujet)) : ''}
+          </table>
+        </td>
+      </tr>
+      <!-- SECTION: MESSAGE -->
+      <tr>
+        <td style="padding:24px 32px;">
+          <div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Message</div>
+          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:16px;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${esc(message) || '—'}</div>
+          ${email ? `<div style="margin-top:16px;text-align:center;"><a href="mailto:${esc(email)}" style="display:inline-block;background:#234998;color:#fff;font-size:13px;font-weight:700;padding:10px 24px;border-radius:8px;text-decoration:none;">Répondre à ${esc(nom)}</a></div>` : ''}
+        </td>
+      </tr>
+      <!-- FOOTER IMAGE -->
+      <tr>
+        <td style="padding:0;line-height:0;">
+          <img src="${apiBase}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f0f4fa;padding:10px 32px;text-align:center;">
+          <div style="color:#828383;font-size:11px;">foga-tech.com &middot; ${dateStr}</div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+
+  await transport.sendMail({
+    from: `"Foga-Tech Contact" <${from}>`,
+    to,
+    replyTo: email || undefined,
+    subject: `[Contact] ${sujet || 'Nouveau message'} — ${nom}`,
+    html,
+  })
+}
+
+/**
+ * Confirmation d'inscription newsletter au subscriber.
+ */
+async function sendNewsletterConfirmation(subscriberEmail) {
+  if (!subscriberEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(subscriberEmail)) return
+  const transport = getTransport()
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER
+  const replyTo = process.env.DEVIS_TO || 'contact@foga-tech.com'
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.tech'
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+      <!-- HEADER -->
+      <tr>
+        <td style="background:#001022;padding:32px 32px;text-align:center;">
+          <img src="${apiBase}/public/logo_email.png" alt="Foga-Tech International" width="140" style="display:block;margin:0 auto 16px;border:0;max-width:140px;">
+          <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Bienvenue dans notre communauté !</div>
+          <div style="color:#a0aec0;font-size:13px;margin-top:8px;">Vous êtes maintenant inscrit à nos actualités BTP.</div>
+        </td>
+      </tr>
+      <!-- CONTENU -->
+      <tr>
+        <td style="padding:32px 32px 0;">
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 20px;">
+            Merci pour votre inscription ! Vous recevrez désormais nos dernières actualités sur nos projets BTP, nos nouveaux engins disponibles et nos offres spéciales.
+          </p>
+          <div style="background:#f0f5ff;border-left:4px solid #FF6B00;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:24px;">
+            <p style="margin:0;color:#1e3a7a;font-size:13px;font-weight:700;">Ce que vous recevrez :</p>
+            <ul style="margin:8px 0 0;padding-left:18px;color:#4b5563;font-size:13px;line-height:1.8;">
+              <li>Nouveaux projets & réalisations Foga-Tech</li>
+              <li>Disponibilité engins de chantier</li>
+              <li>Offres et promotions exclusives</li>
+              <li>Conseils BTP & génie rural</li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+      <!-- CTA -->
+      <tr>
+        <td style="padding:0 32px 32px;text-align:center;">
+          <a href="https://foga-tech.tech" style="display:inline-block;background:linear-gradient(135deg,#FF6B00,#e55f00);color:#fff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
+            Découvrir nos réalisations →
+          </a>
+          <p style="color:#9ca3af;font-size:11px;margin-top:16px;">
+            Pour toute question : <a href="mailto:contact@foga-tech.com" style="color:#234998;text-decoration:none;">contact@foga-tech.com</a>
+            &nbsp;|&nbsp; <a href="https://wa.me/242069905640" style="color:#234998;text-decoration:none;">WhatsApp</a>
+          </p>
+        </td>
+      </tr>
+      <!-- FOOTER IMAGE -->
+      <tr>
+        <td style="padding:0;line-height:0;">
+          <img src="${apiBase}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        </td>
+      </tr>
+      <tr>
+        <td style="background:#f0f4fa;padding:10px 32px;text-align:center;">
+          <div style="color:#828383;font-size:11px;">Foga-Tech International &middot; ${dateStr} &middot; Congo-Brazzaville</div>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+
+  await transport.sendMail({
+    from: `"Foga-Tech International" <${from}>`,
+    to: subscriberEmail,
+    replyTo,
+    subject: 'Bienvenue — Vous êtes inscrit aux actualités Foga-Tech',
+    html,
+  })
+}
+
+module.exports = { sendDevisEmail, sendClientConfirmation, sendContactNotification, sendNewsletterConfirmation, getTransport }

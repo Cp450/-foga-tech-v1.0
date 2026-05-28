@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../db')
+const { sendNewsletterConfirmation } = require('../lib/mailer')
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -11,6 +12,9 @@ router.post('/', async (req, res) => {
   if (!EMAIL_RX.test(email)) {
     return res.status(400).json({ success: false, error: 'Email invalide.' })
   }
+
+  // 1. Persist
+  let isNew = false
   try {
     const sql = `
       INSERT INTO newsletter_subscribers (email, source) VALUES ($1, $2)
@@ -18,15 +22,24 @@ router.post('/', async (req, res) => {
       RETURNING id
     `
     const { rows } = await query(sql, [email, source])
-    if (rows.length === 0) {
-      // Email déjà inscrit — UX traite comme succès silencieux
+    isNew = rows.length > 0
+    if (!isNew) {
+      // Déjà inscrit — succès silencieux, pas de second email
       return res.status(409).json({ success: true, duplicate: true })
     }
-    res.status(201).json({ success: true, id: rows[0].id })
   } catch (e) {
     console.error('[newsletter]', e.message)
-    res.status(500).json({ success: false, error: 'Erreur enregistrement.' })
+    return res.status(500).json({ success: false, error: 'Erreur enregistrement.' })
   }
+
+  // 2. Email de confirmation au subscriber (best-effort, nouveaux inscrits seulement)
+  try {
+    await sendNewsletterConfirmation(email)
+  } catch (mailErr) {
+    console.warn('[newsletter] confirmation email error (non-bloquant):', mailErr.message)
+  }
+
+  res.status(201).json({ success: true })
 })
 
 module.exports = router
