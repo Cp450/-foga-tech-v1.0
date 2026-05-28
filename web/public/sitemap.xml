@@ -1,98 +1,98 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url>
-    <loc>https://foga-tech.com/</loc>
+    <loc>https://foga-tech.tech/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/genie-civil</loc>
+    <loc>https://foga-tech.tech/genie-civil</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/genie-rural</loc>
+    <loc>https://foga-tech.tech/genie-rural</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/genie-rural/infrastructures-rurales</loc>
+    <loc>https://foga-tech.tech/genie-rural/infrastructures-rurales</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/genie-rural/solutions-durables</loc>
+    <loc>https://foga-tech.tech/genie-rural/solutions-durables</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/genie-rural/levage-pisciculture</loc>
+    <loc>https://foga-tech.tech/genie-rural/levage-pisciculture</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/location</loc>
+    <loc>https://foga-tech.tech/location</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/portfolio</loc>
+    <loc>https://foga-tech.tech/portfolio</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/a-propos</loc>
+    <loc>https://foga-tech.tech/a-propos</loc>
     <changefreq>yearly</changefreq>
     <priority>0.7</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/contact</loc>
+    <loc>https://foga-tech.tech/contact</loc>
     <changefreq>yearly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/devis</loc>
+    <loc>https://foga-tech.tech/devis</loc>
     <changefreq>yearly</changefreq>
     <priority>0.9</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/devis-particulier</loc>
+    <loc>https://foga-tech.tech/devis-particulier</loc>
     <changefreq>yearly</changefreq>
     <priority>0.85</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/partenaires</loc>
+    <loc>https://foga-tech.tech/partenaires</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/mentions-legales</loc>
+    <loc>https://foga-tech.tech/mentions-legales</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/cgu</loc>
+    <loc>https://foga-tech.tech/cgu</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
 
   <url>
-    <loc>https://foga-tech.com/confidentialite</loc>
+    <loc>https://foga-tech.tech/confidentialite</loc>
     <changefreq>yearly</changefreq>
     <priority>0.2</priority>
   </url>
