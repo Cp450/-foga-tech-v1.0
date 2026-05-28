@@ -69,8 +69,8 @@ router.post('/', async (req, res) => {
   // 3. Email (best-effort, independent of PDF)
   try {
     await sendDevisEmail({
-      reference, nom, tel, profile, ville, zone: zone || quartier,
-      description, categorie, pdfBuffer,
+      reference, nom, tel, profile, email, ville, zone, quartier,
+      description, categorie, budget, surface, pdfBuffer,
     })
     mailOk = true
   } catch (mailErr) {
