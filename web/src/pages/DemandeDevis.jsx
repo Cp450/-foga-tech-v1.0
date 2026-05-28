@@ -147,6 +147,7 @@ export default function DemandeDevis() {
     zone: "",
     prenom: "",
     tel: "",
+    email: "",
     description: "",
   });
   const [direction, setDirection] = useState("forward");
@@ -579,6 +580,21 @@ export default function DemandeDevis() {
                 className={INPUT_DARK + (error && !form.tel.trim() ? " !border-red-500/70" : "")}
                 aria-label="Téléphone"
               />
+              <div className="relative">
+                <input
+                  type="email"
+                  inputMode="email"
+                  autoComplete="email"
+                  value={form.email}
+                  onChange={(e) => setField("email", e.target.value)}
+                  placeholder="Email (optionnel — pour recevoir votre récap)"
+                  className={INPUT_DARK}
+                  aria-label="Email (optionnel)"
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-white/30 text-xs font-body">
+                  Optionnel
+                </span>
+              </div>
             </div>
             <div className="flex justify-end mt-8">
               <button
@@ -707,6 +723,7 @@ export default function DemandeDevis() {
                   </p>
                   <p style={{ fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
                     {form.tel || "—"}<br />
+                    {form.email && <>{form.email}<br /></>}
                     {form.profile || "—"}
                   </p>
                   {/* Modifier client */}
@@ -828,6 +845,11 @@ export default function DemandeDevis() {
             </h1>
             <p className="font-body text-white/60 text-lg mb-3 leading-relaxed">
               Votre demande a été transmise à notre équipe.
+              {form.email && (
+                <span className="block text-sm text-white/40 mt-1">
+                  Un récapitulatif a été envoyé à <span className="text-secondary-container">{form.email}</span>
+                </span>
+              )}
             </p>
             <p className="font-body text-white/40 text-sm mb-10 leading-relaxed">
               Réf. <span className="text-secondary-container font-bold">{reference}</span> — réponse sous 48 h ouvrées.
