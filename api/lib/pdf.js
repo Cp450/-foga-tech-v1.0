@@ -1,4 +1,6 @@
 const { PDFDocument, StandardFonts, rgb } = require('pdf-lib')
+const fs = require('fs')
+const path = require('path')
 
 const W = 595.28
 const H = 841.89
@@ -86,20 +88,37 @@ async function generatePdf(data) {
   // ─── ORANGE TOP BAND ──────────────────────────────────────
   box(0, H - 5, W, 5, C.orange)
 
+  // ─── LOGO (best-effort) ───────────────────────────────────
+  const logoPath = path.join(__dirname, '..', 'assets', 'logo.png')
+  let logoEmbedded = false
+  try {
+    const logoBytes = fs.readFileSync(logoPath)
+    const logoImg = await doc.embedPng(logoBytes)
+    // Original 411×325 → scale to fit 110pt wide
+    const logoW = 110
+    const logoH = Math.round(logoW * (325 / 411))
+    page.drawImage(logoImg, { x: M, y: H - 14 - logoH, width: logoW, height: logoH })
+    logoEmbedded = true
+  } catch (_) { /* logo absent — fallback to text */ }
+
   // ─── HEADER ───────────────────────────────────────────────
-  t({ text: 'Foga-Tech International', x: M, y: H - 30, size: 15, font: B })
-  t({ text: 'BTP · Génie Civil · Génie Rural · Location Engins', x: M, y: H - 44, size: 8, color: C.gray })
-  t({ text: '+242 06 990 56 40  |  contact@foga-tech.com', x: M, y: H - 55, size: 8, color: C.gray })
-  t({ text: 'Brazzaville, Congo-Brazzaville', x: M, y: H - 66, size: 8, color: C.gray })
+  if (!logoEmbedded) {
+    t({ text: 'Foga-Tech International', x: M, y: H - 30, size: 15, font: B })
+  }
+  const subY = logoEmbedded ? H - 79 : H - 44
+  t({ text: 'BTP · Génie Civil · Génie Rural · Location Engins', x: M, y: subY, size: 8, color: C.gray })
+  t({ text: '+242 06 990 56 40  |  contact@foga-tech.com', x: M, y: subY - 11, size: 8, color: C.gray })
+  t({ text: 'Brazzaville, Congo-Brazzaville', x: M, y: subY - 22, size: 8, color: C.gray })
 
   rj(`DEVIS — ${reference}`, W - M, H - 30, 16, B)
   rj(`Date : ${dateStr}`, W - M, H - 47, 8, R, C.gray)
-  rj(`Validité : ${validityStr}`, W - M, H - 58, 8, R, C.gray)
+  rj(`Validité : ${validityStr}`, W - M, H - 59, 8, R, C.gray)
 
-  ln(M, H - 80, W - M, H - 80, C.navy, 1.5)
+  const sepY = logoEmbedded ? H - 108 : H - 80
+  ln(M, sepY, W - M, sepY, C.navy, 1.5)
 
   // ─── DE / DEMANDEUR ───────────────────────────────────────
-  let y = H - 100
+  let y = sepY - 20
 
   t({ text: 'DE', x: M, y, size: 7, font: B, color: C.lgray })
   t({ text: 'DEMANDEUR', x: W / 2, y, size: 7, font: B, color: C.lgray })
