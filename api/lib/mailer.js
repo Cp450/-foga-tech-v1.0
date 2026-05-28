@@ -28,6 +28,10 @@ function row(label, value) {
     </tr>`
 }
 
+function sectionTitle(label) {
+  return `<div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">${label}</div>`
+}
+
 /**
  * Envoie la notification de devis à l'adresse interne Foga-Tech.
  */
@@ -41,6 +45,10 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
   const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   const validStr = new Date(now.getTime() + 30 * 24 * 3600 * 1000)
     .toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  // CTA : email si dispo, sinon téléphone
+  const ctaHref = email ? `mailto:${esc(email)}` : `tel:${esc(tel)}`
+  const ctaLabel = email ? 'Répondre par email' : `Appeler : ${esc(tel)}`
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -57,29 +65,33 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
-                <div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Foga-Tech International</div>
-                <div style="color:#ffffff;font-size:22px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
-                <div style="color:#94a3b8;font-size:14px;margin-top:4px;">Référence : <span style="color:#FF6B00;font-weight:700;">DV-${esc(reference)}</span></div>
+                <!-- Logo texte -->
+                <div style="margin-bottom:16px;">
+                  <span style="color:#FF6B00;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
+                  <span style="color:#94a3b8;font-size:12px;margin-left:8px;font-weight:400;">International</span>
+                </div>
+                <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
+                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#FF6B00;font-weight:700;">DV-${esc(reference)}</span></div>
               </td>
               <td align="right" style="vertical-align:top;">
-                <div style="background:#FF6B00;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">À traiter</div>
+                <div style="background:#FF6B00;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
               </td>
             </tr>
           </table>
         </td>
       </tr>
 
-      <!-- META -->
+      <!-- DATES -->
       <tr>
         <td style="padding:0 32px;">
           <table width="100%" cellpadding="0" cellspacing="0" style="margin:24px 0 0;">
             <tr>
               <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
-                <span style="color:#9ca3af;font-size:12px;">📅 Date de demande</span><br>
+                <span style="color:#9ca3af;font-size:12px;">Date de demande</span><br>
                 <span style="color:#374151;font-size:14px;font-weight:600;">${dateStr}</span>
               </td>
               <td style="padding:10px 0;border-bottom:1px solid #f1f5f9;text-align:right;">
-                <span style="color:#9ca3af;font-size:12px;">⏳ Validité devis</span><br>
+                <span style="color:#9ca3af;font-size:12px;">Validite du devis</span><br>
                 <span style="color:#374151;font-size:14px;font-weight:600;">${validStr}</span>
               </td>
             </tr>
@@ -90,10 +102,10 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- SECTION: CLIENT -->
       <tr>
         <td style="padding:24px 32px 0;">
-          <div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">👤 Informations client</div>
+          ${sectionTitle('Informations client')}
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
             ${row('Nom', `<strong>${esc(nom)}</strong>`)}
-            ${row('Téléphone', `<a href="tel:${esc(tel)}" style="color:#FF6B00;text-decoration:none;font-weight:600;">${esc(tel)}</a>`)}
+            ${row('Telephone', `<a href="tel:${esc(tel)}" style="color:#FF6B00;text-decoration:none;font-weight:600;">${esc(tel)}</a>`)}
             ${email ? row('Email', `<a href="mailto:${esc(email)}" style="color:#FF6B00;text-decoration:none;">${esc(email)}</a>`) : ''}
             ${row('Profil', esc(profile) || '—')}
           </table>
@@ -103,11 +115,11 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- SECTION: PROJET -->
       <tr>
         <td style="padding:24px 32px 0;">
-          <div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">🏗️ Détails du projet</div>
+          ${sectionTitle('Details du projet')}
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
-            ${row('Catégorie', esc(categorie) || '—')}
+            ${row('Categorie', esc(categorie) || '—')}
             ${row('Localisation', esc(localisation))}
-            ${budget ? row('Budget estimé', esc(budget)) : ''}
+            ${budget ? row('Budget estime', esc(budget)) : ''}
             ${surface ? row('Surface', esc(surface) + ' m²') : ''}
           </table>
         </td>
@@ -116,7 +128,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- SECTION: DESCRIPTION -->
       <tr>
         <td style="padding:24px 32px 0;">
-          <div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">📝 Description des travaux</div>
+          ${sectionTitle('Description des travaux')}
           <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:16px;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${esc(description) || '—'}</div>
         </td>
       </tr>
@@ -124,9 +136,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- CTA -->
       <tr>
         <td style="padding:32px;text-align:center;">
-          <a href="mailto:${esc(email || '')}" style="display:inline-block;background:#FF6B00;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">
-            Répondre au client
-          </a>
+          <a href="${ctaHref}" style="display:inline-block;background:#FF6B00;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
         </td>
       </tr>
 
@@ -134,8 +144,8 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <tr>
         <td style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
           <div style="color:#9ca3af;font-size:12px;line-height:1.6;">
-            Foga-Tech International · BTP Congo<br>
-            <span style="color:#d1d5db;">Réf. DV-${esc(reference)} · ${dateStr}</span>
+            <span style="color:#FF6B00;font-weight:700;">FOGA</span><span style="color:#374151;font-weight:700;">-TECH</span> International<br>
+            <span style="color:#d1d5db;">DV-${esc(reference)} &middot; ${dateStr}</span>
           </div>
         </td>
       </tr>
