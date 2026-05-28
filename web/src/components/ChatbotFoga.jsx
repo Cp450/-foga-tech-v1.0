@@ -195,7 +195,7 @@ export default function ChatbotFoga() {
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label="Assistant Foga-Tech"
-        className="fixed bottom-24 right-5 z-40 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300"
+        className="fixed bottom-28 md:bottom-24 right-4 z-50 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300"
         style={{
           background: open
             ? `${BG_PANEL}`

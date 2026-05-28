@@ -132,7 +132,7 @@ export default function DevisParticulier() {
       <SEO
         title="Devis particulier — Villa, rénovation, construction"
         description="Estimez le budget de votre projet BTP avec notre calculateur en ligne. Villa, rénovation, immeuble — réponse indicative immédiate."
-        canonical="https://foga-tech.com/devis-particulier"
+        canonical="https://foga-tech.tech/devis-particulier"
       />
 
       <CalculateurBudget />

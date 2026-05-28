@@ -7,7 +7,7 @@ export default function MentionsLegales() {
       <SEO
         title="Mentions légales"
         description="Mentions légales de Foga-Tech International — éditeur, hébergeur, propriété intellectuelle et droit applicable."
-        canonical="https://foga-tech.com/mentions-legales"
+        canonical="https://foga-tech.tech/mentions-legales"
         noindex
       />
       <div className="max-w-3xl mx-auto px-4 sm:px-6">

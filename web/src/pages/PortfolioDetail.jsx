@@ -104,7 +104,7 @@ export default function PortfolioDetail() {
       <SEO
         title={`${projet.title} — Portfolio Foga-Tech`}
         description={projet.description}
-        canonical={`https://foga-tech.com/portfolio/${projet.id}`}
+        canonical={`https://foga-tech.tech/portfolio/${projet.id}`}
       />
       {/* Hero */}
       <div className="relative h-[50vh] min-h-[360px] overflow-hidden">

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 
 export default function ClientPortal() {
@@ -7,7 +7,7 @@ export default function ClientPortal() {
       <SEO
         title="Espace Client — Bientôt disponible"
         description="Le portail client Foga-Tech BTP arrive prochainement. Suivez vos chantiers en temps réel."
-        canonical="https://foga-tech.com/client"
+        canonical="https://foga-tech.tech/client"
       />
 
       <div className="max-w-2xl w-full">

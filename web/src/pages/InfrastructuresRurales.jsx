@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { fadeUp, stagger } from '../lib/motion'
 import SEO from '../components/SEO'
@@ -30,7 +30,7 @@ export default function InfrastructuresRurales() {
       <SEO
         title="Infrastructures rurales Congo — Adduction d'eau, électrification, terrassement | Foga-Tech BTP"
         description="Construction d'infrastructures rurales au Congo : adduction d'eau, électrification, dessouchage, voies d'accès, ouvrages hydrauliques. Foga-Tech BTP, expertise terrain depuis 2012."
-        canonical="https://foga-tech.com/genie-rural/infrastructures-rurales"
+        canonical="https://foga-tech.tech/genie-rural/infrastructures-rurales"
       />
 
       {/* Hero — Home DNA Ken Burns + radial glow */}

@@ -9,7 +9,7 @@ export default function PartenairesPage() {
       <SEO
         title="Partenaires & Clients — Foga-Tech BTP Congo"
         description="Découvrez les partenaires stratégiques, fournisseurs et clients institutionnels de Foga-Tech BTP Congo. Institutions publiques, groupes internationaux et entreprises congolaises."
-        canonical="https://foga-tech.com/partenaires"
+        canonical="https://foga-tech.tech/partenaires"
       />
 
       {/* Page hero — full screen */}

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 
 export default function PolitiqueConfidentialite() {
@@ -7,7 +7,7 @@ export default function PolitiqueConfidentialite() {
       <SEO
         title="Politique de confidentialité"
         description="Politique de confidentialité de Foga-Tech International — données collectées, finalité, droits des utilisateurs."
-        canonical="https://foga-tech.com/confidentialite"
+        canonical="https://foga-tech.tech/confidentialite"
         noindex
       />
       <div className="max-w-3xl mx-auto px-4 sm:px-6">

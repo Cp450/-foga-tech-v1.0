@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 
 export default function CGU() {
@@ -7,7 +7,7 @@ export default function CGU() {
       <SEO
         title="Conditions Générales d'Utilisation"
         description="Conditions générales d'utilisation de Foga-Tech International — services, devis, responsabilité et droit applicable."
-        canonical="https://foga-tech.com/cgu"
+        canonical="https://foga-tech.tech/cgu"
         noindex
       />
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
