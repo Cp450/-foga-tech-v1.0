@@ -51,9 +51,10 @@ router.post('/', async (req, res) => {
     console.error('[devis] DB insert error (non-bloquant):', dbErr.message)
   }
 
-  // 2. PDF + email (best-effort)
+  // 2. PDF (best-effort, optional)
+  let pdfBuffer = null
   try {
-    const pdfBuffer = await generatePdf({
+    pdfBuffer = await generatePdf({
       reference,
       dateStr: fmtDateFr(now),
       validityStr: fmtDateFr(validity),
@@ -61,6 +62,12 @@ router.post('/', async (req, res) => {
       zone: zone || quartier, ville, description,
       publicBase: process.env.PUBLIC_BASE || '',
     })
+  } catch (pdfErr) {
+    console.warn('[devis] PDF désactivé ou erreur:', pdfErr.message)
+  }
+
+  // 3. Email (best-effort, independent of PDF)
+  try {
     await sendDevisEmail({
       reference, nom, tel, profile, ville, zone: zone || quartier,
       description, categorie, pdfBuffer,

@@ -40,19 +40,17 @@ async function sendDevisEmail({ reference, nom, tel, profile, ville, zone, descr
   <p style="margin-top:20px;color:#8a96a3;font-size:12px;">Devis complet en pièce jointe (PDF).</p>
 </div>`
 
+  const attachments = pdfBuffer
+    ? [{ filename: `Devis-${reference}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+    : []
+
   await transport.sendMail({
     from: `"Foga-Tech Devis" <${from}>`,
     to,
     replyTo: process.env.DEVIS_REPLY_TO || undefined,
     subject: `Devis ${reference} · ${nom}`,
     html,
-    attachments: [
-      {
-        filename: `Devis-${reference}.pdf`,
-        content: pdfBuffer,
-        contentType: 'application/pdf',
-      },
-    ],
+    attachments,
   })
 }
 
