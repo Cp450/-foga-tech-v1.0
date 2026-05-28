@@ -70,7 +70,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
                 <div style="margin-top:8px;"><span style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;">A traiter</span></div>
               </td>
               <td align="right" style="vertical-align:middle;width:160px;">
-                <img src="${process.env.FRONTEND_URL || process.env.PUBLIC_BASE || ''}/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
+                <img src="${process.env.API_URL || 'http://rcigvuhwa3u53tcn1cg3ml4n.168.231.80.27.sslip.io'}/public/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
               </td>
             </tr>
           </table>
@@ -132,7 +132,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- FOOTER IMAGE -->
       <tr>
         <td style="padding:24px 0 0;line-height:0;">
-          <img src="${process.env.FRONTEND_URL || process.env.PUBLIC_BASE || ''}/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+          <img src="${process.env.API_URL || 'http://rcigvuhwa3u53tcn1cg3ml4n.168.231.80.27.sslip.io'}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
         </td>
       </tr>
 

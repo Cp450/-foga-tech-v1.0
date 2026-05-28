@@ -1,5 +1,6 @@
 const express = require('express')
 const cors = require('cors')
+const path = require('path')
 require('dotenv').config()
 
 const app = express()
@@ -20,6 +21,7 @@ app.use(cors({
   },
 }))
 app.use(express.json({ limit: '1mb' }))
+app.use('/public', express.static(path.join(__dirname, 'public')))
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'foga-tech-api', version: '1.0.0' })
