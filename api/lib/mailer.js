@@ -67,14 +67,14 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
               <td>
                 <!-- Logo texte -->
                 <div style="margin-bottom:16px;">
-                  <span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#009640;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
+                  <span style="color:#234998;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#828383;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
                   <span style="color:#94a3b8;font-size:12px;margin-left:8px;font-weight:400;">International</span>
                 </div>
                 <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
-                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#009640;font-weight:700;">DV-${esc(reference)}</span></div>
+                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#234998;font-weight:700;">DV-${esc(reference)}</span></div>
               </td>
               <td align="right" style="vertical-align:top;">
-                <div style="background:#009640;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
+                <div style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
               </td>
             </tr>
           </table>
@@ -136,7 +136,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- CTA -->
       <tr>
         <td style="padding:32px;text-align:center;">
-          <a href="${ctaHref}" style="display:inline-block;background:#009640;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
+          <a href="${ctaHref}" style="display:inline-block;background:#234998;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
         </td>
       </tr>
 
@@ -144,7 +144,8 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <tr>
         <td style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
           <div style="color:#9ca3af;font-size:12px;line-height:1.6;">
-            <span style="color:#234998;font-weight:700;">FOGA</span><span style="color:#009640;font-weight:700;">-TECH</span> International<br>
+            <span style="color:#234998;font-weight:700;">FOGA</span><span style="color:#828383;font-weight:700;">-TECH</span> International<br>
+            <span style="color:#828383;">06990 056 40</span><br>
             <span style="color:#d1d5db;">DV-${esc(reference)} &middot; ${dateStr}</span>
           </div>
         </td>
