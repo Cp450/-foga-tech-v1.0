@@ -29,7 +29,7 @@ function row(label, value) {
 }
 
 function sectionTitle(label) {
-  return `<div style="color:#FF6B00;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">${label}</div>`
+  return `<div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">${label}</div>`
 }
 
 /**
@@ -61,20 +61,20 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
 
       <!-- HEADER -->
       <tr>
-        <td style="background:linear-gradient(135deg,#1a2535 0%,#0f172a 100%);padding:32px 32px 24px;">
+        <td style="background:linear-gradient(135deg,#1a3a6e 0%,#0d2247 100%);padding:32px 32px 24px;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td>
                 <!-- Logo texte -->
                 <div style="margin-bottom:16px;">
-                  <span style="color:#FF6B00;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
+                  <span style="color:#ffffff;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#009640;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
                   <span style="color:#94a3b8;font-size:12px;margin-left:8px;font-weight:400;">International</span>
                 </div>
                 <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
-                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#FF6B00;font-weight:700;">DV-${esc(reference)}</span></div>
+                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#009640;font-weight:700;">DV-${esc(reference)}</span></div>
               </td>
               <td align="right" style="vertical-align:top;">
-                <div style="background:#FF6B00;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
+                <div style="background:#009640;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
               </td>
             </tr>
           </table>
@@ -105,8 +105,8 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
           ${sectionTitle('Informations client')}
           <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
             ${row('Nom', `<strong>${esc(nom)}</strong>`)}
-            ${row('Telephone', `<a href="tel:${esc(tel)}" style="color:#FF6B00;text-decoration:none;font-weight:600;">${esc(tel)}</a>`)}
-            ${email ? row('Email', `<a href="mailto:${esc(email)}" style="color:#FF6B00;text-decoration:none;">${esc(email)}</a>`) : ''}
+            ${row('Telephone', `<a href="tel:${esc(tel)}" style="color:#234998;text-decoration:none;font-weight:600;">${esc(tel)}</a>`)}
+            ${email ? row('Email', `<a href="mailto:${esc(email)}" style="color:#234998;text-decoration:none;">${esc(email)}</a>`) : ''}
             ${row('Profil', esc(profile) || '—')}
           </table>
         </td>
@@ -136,7 +136,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <!-- CTA -->
       <tr>
         <td style="padding:32px;text-align:center;">
-          <a href="${ctaHref}" style="display:inline-block;background:#FF6B00;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
+          <a href="${ctaHref}" style="display:inline-block;background:#009640;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
         </td>
       </tr>
 
@@ -144,7 +144,7 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
       <tr>
         <td style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
           <div style="color:#9ca3af;font-size:12px;line-height:1.6;">
-            <span style="color:#FF6B00;font-weight:700;">FOGA</span><span style="color:#374151;font-weight:700;">-TECH</span> International<br>
+            <span style="color:#234998;font-weight:700;">FOGA</span><span style="color:#009640;font-weight:700;">-TECH</span> International<br>
             <span style="color:#d1d5db;">DV-${esc(reference)} &middot; ${dateStr}</span>
           </div>
         </td>
