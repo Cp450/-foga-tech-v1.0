@@ -61,16 +61,16 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
 
       <!-- HEADER -->
       <tr>
-        <td style="background:linear-gradient(135deg,#1a3a6e 0%,#0d2247 100%);padding:24px 32px;">
+        <td style="background:#ffffff;padding:20px 32px;border-bottom:2px solid #234998;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
               <td style="vertical-align:middle;">
-                <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
-                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#ffffff;font-weight:700;">DV-${esc(reference)}</span></div>
-                <div style="margin-top:10px;"><span style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;">A traiter</span></div>
+                <div style="color:#234998;font-size:18px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
+                <div style="color:#828383;font-size:13px;margin-top:4px;">Référence : <strong>DV-${esc(reference)}</strong></div>
+                <div style="margin-top:8px;"><span style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;">A traiter</span></div>
               </td>
               <td align="right" style="vertical-align:middle;width:160px;">
-                <img src="${process.env.PUBLIC_BASE || ''}/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
+                <img src="${process.env.FRONTEND_URL || process.env.PUBLIC_BASE || ''}/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
               </td>
             </tr>
           </table>
@@ -129,17 +129,10 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
         </td>
       </tr>
 
-      <!-- CTA -->
-      <tr>
-        <td style="padding:32px;text-align:center;">
-          <a href="${ctaHref}" style="display:inline-block;background:#234998;color:#ffffff;font-size:14px;font-weight:700;padding:14px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.5px;">${ctaLabel}</a>
-        </td>
-      </tr>
-
       <!-- FOOTER IMAGE -->
       <tr>
-        <td style="padding:0;line-height:0;">
-          <img src="${process.env.PUBLIC_BASE || ''}/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        <td style="padding:24px 0 0;line-height:0;">
+          <img src="${process.env.FRONTEND_URL || process.env.PUBLIC_BASE || ''}/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
         </td>
       </tr>
 
