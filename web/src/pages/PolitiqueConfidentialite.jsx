@@ -7,7 +7,7 @@ export default function PolitiqueConfidentialite() {
       <SEO
         title="Politique de confidentialité"
         description="Politique de confidentialité de Foga-Tech International — données collectées, finalité, droits des utilisateurs."
-        canonical="https://foga-tech.tech/confidentialite"
+        canonical="https://foga-tech.com/confidentialite"
         noindex
       />
       <div className="max-w-3xl mx-auto px-4 sm:px-6">

@@ -1,4 +1,4 @@
-const nodemailer = require('nodemailer')
+﻿const nodemailer = require('nodemailer')
 
 let cachedTransport = null
 
@@ -189,7 +189,7 @@ async function sendClientConfirmationEmail({ reference, nom, tel, categorie, vil
       <!-- HEADER -->
       <tr>
         <td style="background:#234998;padding:28px 32px;text-align:center;">
-          <img src="${process.env.API_URL || 'https://api.foga-tech.tech'}/public/logo_email.png" alt="Foga-Tech International" width="140" style="display:block;margin:0 auto 12px;border:0;max-width:140px;">
+          <img src="${process.env.API_URL || 'https://api.foga-tech.com'}/public/logo_email.png" alt="Foga-Tech International" width="140" style="display:block;margin:0 auto 12px;border:0;max-width:140px;">
           <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Votre demande de devis est confirmée</div>
           <div style="color:#a8c4f0;font-size:13px;margin-top:6px;">Référence : <strong>DV-${esc(reference)}</strong></div>
         </td>
@@ -249,7 +249,7 @@ async function sendClientConfirmationEmail({ reference, nom, tel, categorie, vil
       <!-- FOOTER IMAGE -->
       <tr>
         <td style="padding:0;line-height:0;">
-          <img src="${process.env.API_URL || 'https://api.foga-tech.tech'}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+          <img src="${process.env.API_URL || 'https://api.foga-tech.com'}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
         </td>
       </tr>
 
@@ -287,7 +287,7 @@ async function sendClientConfirmation(clientEmail, data) {
   const localisation = [zone || quartier, ville].filter(Boolean).join(', ') || '—'
   const now = new Date()
   const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
-  const apiBase = process.env.API_URL || 'https://api.foga-tech.tech'
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.com'
 
   const html = `<!DOCTYPE html>
 <html lang="fr">
@@ -386,7 +386,7 @@ async function sendContactNotification({ nom, email, sujet, message }) {
   const transport = getTransport()
   const to = process.env.CONTACT_TO || process.env.DEVIS_TO || 'contact@foga-tech.com'
   const from = process.env.SMTP_FROM || process.env.SMTP_USER
-  const apiBase = process.env.API_URL || 'https://api.foga-tech.tech'
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.com'
   const now = new Date()
   const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
   const timeStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
@@ -468,7 +468,7 @@ async function sendNewsletterConfirmation(subscriberEmail) {
   const transport = getTransport()
   const from = process.env.SMTP_FROM || process.env.SMTP_USER
   const replyTo = process.env.DEVIS_TO || 'contact@foga-tech.com'
-  const apiBase = process.env.API_URL || 'https://api.foga-tech.tech'
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.com'
   const now = new Date()
   const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
 

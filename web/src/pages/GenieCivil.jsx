@@ -46,7 +46,7 @@ export default function GenieCivil() {
       <SEO
         title="Génie Civil & BTP — Bureau d'Étude, Construction, Travaux Publics"
         description="Foga-Tech BTP Congo : bureau d'étude, ingénierie structurelle, architecture, construction bâtiment et travaux publics. Expertise locale, normes internationales."
-        canonical="https://foga-tech.tech/genie-civil"
+        canonical="https://foga-tech.com/genie-civil"
       />
 
       {/* ── Hero immersif — Ken Burns carousel ──────────────────────────── */}

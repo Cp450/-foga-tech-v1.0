@@ -93,7 +93,7 @@ export default function Location() {
       <SEO
         title="Location d'engins BTP Brazzaville — Foga-Tech"
         description="65 engins BTP disponibles à Brazzaville : pelleteuses, bulldozers, grues, camions. Livraison sous 24h, opérateurs certifiés. Foga-Tech BTP Congo."
-        canonical="https://foga-tech.tech/location"
+        canonical="https://foga-tech.com/location"
       />
 
       {/* ── PHASE 1 : Sélecteur catégories ─────────────────────────── */}

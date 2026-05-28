@@ -1,5 +1,5 @@
-User-agent: *
+﻿User-agent: *
 Allow: /
 Disallow: /client/
 
-Sitemap: https://foga-tech.tech/sitemap.xml
+Sitemap: https://foga-tech.com/sitemap.xml

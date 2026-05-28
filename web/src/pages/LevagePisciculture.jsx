@@ -29,7 +29,7 @@ export default function LevagePisciculture() {
       <SEO
         title="Élevage & Pisciculture Congo — Bâtiments avicoles, porcins, étangs | Foga-Tech BTP"
         description="Foga-Tech BTP construit bâtiments avicoles, porcheries, étables et étangs piscicoles au Congo-Brazzaville. Infrastructures spécialisées génie rural depuis 2012."
-        canonical="https://foga-tech.tech/genie-rural/levage-pisciculture"
+        canonical="https://foga-tech.com/genie-rural/levage-pisciculture"
       />
 
       {/* Hero — Home DNA Ken Burns multi-image */}

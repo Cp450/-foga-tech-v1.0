@@ -296,7 +296,7 @@ export default function Portfolio() {
       <SEO
         title="Portfolio — +15 chantiers livrés | Foga-Tech BTP"
         description="Parcours chronologique 2012 → 2024 — +15 références BTP, voirie, industrie, énergie et génie rural au Congo-Brazzaville. Plaquette Foga-Tech International."
-        canonical="https://foga-tech.tech/portfolio"
+        canonical="https://foga-tech.com/portfolio"
       />
 
       {/* ── HERO — Home DNA Ken Burns multi-image ─────────────── */}

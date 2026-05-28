@@ -320,7 +320,7 @@ export default function DemandeDevis() {
       <SEO
         title="Demander un devis BTP — Foga-Tech International"
         description="Obtenez un devis offert sous 48 h pour votre projet BTP au Congo-Brazzaville. Construction, génie civil, génie rural, location d'engins — ingénieur terrain dédié."
-        canonical="https://foga-tech.tech/devis"
+        canonical="https://foga-tech.com/devis"
       />
 
       {/* ── HERO ──────────────────────────────────────────────────────────── */}

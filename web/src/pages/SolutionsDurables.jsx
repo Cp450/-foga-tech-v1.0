@@ -13,7 +13,7 @@ export default function SolutionsDurables() {
       <SEO
         title="Solutions durables Congo — Énergie solaire, biogaz, irrigation intelligente | Foga-Tech BTP"
         description="Foga-Tech BTP conçoit des solutions durables pour le génie rural au Congo-Brazzaville : irrigation intelligente, biogaz, biofertilisants, énergie hybride. Innovation écologique BTP depuis 2012."
-        canonical="https://foga-tech.tech/genie-rural/solutions-durables"
+        canonical="https://foga-tech.com/genie-rural/solutions-durables"
       />
       <main className="bg-surface min-h-screen">
         {/* Hero — Home DNA full-bleed + Ken Burns */}

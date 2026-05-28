@@ -76,7 +76,7 @@ export default function GenieRural() {
       <SEO
         title="Génie Rural Congo — Irrigation, élevage, infrastructures agricoles | Foga-Tech BTP"
         description="Foga-Tech BTP réalise irrigation, élevage, pisciculture et infrastructures agricoles dans tout le Congo-Brazzaville. Expertise génie rural depuis 2012."
-        canonical="https://foga-tech.tech/genie-rural"
+        canonical="https://foga-tech.com/genie-rural"
       />
 
       {/* ── HERO — Home DNA full-bleed + Ken Burns ───────────────── */}

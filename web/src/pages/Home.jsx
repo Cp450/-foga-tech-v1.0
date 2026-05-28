@@ -277,7 +277,7 @@ export default function Home() {
       <SEO
         title="Foga-Tech International — Ingénierie BTP de référence au Congo"
         description="Génie civil, bâtiment, génie rural et location d'engins à Brazzaville et Pointe-Noire. +15 chantiers livrés, 98% de satisfaction client depuis 2012."
-        canonical="https://foga-tech.tech"
+        canonical="https://foga-tech.com"
       />
 
       {/* ══════════════════════════════════════════════════════

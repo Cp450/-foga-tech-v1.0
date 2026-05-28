@@ -82,7 +82,7 @@ export default function Contact() {
       <SEO
         title="Contact — Foga-Tech International"
         description="Contactez Foga-Tech International : WhatsApp, téléphone, email. Bureaux à Brazzaville et Pointe-Noire. Réponse garantie sous 24h."
-        canonical="https://foga-tech.tech/contact"
+        canonical="https://foga-tech.com/contact"
       />
 
       {/* ── Section 1 — Hero dark ─────────────────────────────── */}

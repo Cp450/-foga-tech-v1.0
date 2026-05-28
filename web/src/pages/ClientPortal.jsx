@@ -7,7 +7,7 @@ export default function ClientPortal() {
       <SEO
         title="Espace Client — Bientôt disponible"
         description="Le portail client Foga-Tech BTP arrive prochainement. Suivez vos chantiers en temps réel."
-        canonical="https://foga-tech.tech/client"
+        canonical="https://foga-tech.com/client"
       />
 
       <div className="max-w-2xl w-full">

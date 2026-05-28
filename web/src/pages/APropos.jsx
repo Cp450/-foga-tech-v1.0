@@ -73,7 +73,7 @@ export default function APropos() {
       <SEO
         title="À propos — Foga-Tech International BTP Congo"
         description="Foga-Tech International : 12 ans d'expertise BTP au Congo-Brazzaville. Génie civil, génie rural, location d'engins. Équipe constituée d'expertise locale professionnelle, agréée Ministère BTP Congo."
-        canonical="https://foga-tech.tech/a-propos"
+        canonical="https://foga-tech.com/a-propos"
       />
 
       {/* ── HERO Ken Burns ────────────────────────────────────────── */}
