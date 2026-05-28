@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../db')
-const { sendDevisEmail } = require('../lib/mailer')
+const { sendDevisEmail, sendClientConfirmation } = require('../lib/mailer')
 
 function generatePdf() {
   return Promise.reject(new Error('PDF temporairement désactivé'))
@@ -77,6 +77,19 @@ router.post('/', async (req, res) => {
     console.error('[devis] mail error (non-bloquant):', mailErr.message)
   }
 
+  // 4. Confirmation email to client (best-effort, only if email provided)
+  let clientMailOk = false
+  if (email) {
+    try {
+      await sendClientConfirmation(email, {
+        reference, nom, tel, categorie, ville, zone, quartier, description, budget, surface,
+      })
+      clientMailOk = true
+    } catch (clientMailErr) {
+      console.warn('[devis] client confirmation email error (non-bloquant):', clientMailErr.message)
+    }
+  }
+
   if (!savedOk && !mailOk) {
     return res.status(500).json({
       success: false,
@@ -90,6 +103,7 @@ router.post('/', async (req, res) => {
     reference,
     persisted: savedOk,
     emailed: mailOk,
+    clientConfirmed: clientMailOk,
   })
 })
 
