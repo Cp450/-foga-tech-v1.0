@@ -124,7 +124,7 @@ export default function Location() {
 
           {/* Grille catégories */}
           <div className="max-w-5xl mx-auto w-full grid grid-cols-2 md:grid-cols-3 gap-4 flex-1">
-            {CATS.map((cat) => (
+            {CATS.map((cat, i) => (
               <button
                 key={cat.id}
                 onClick={() => goToCategory(cat.id)}
@@ -135,6 +135,8 @@ export default function Location() {
                 <img
                   src={cat.img}
                   alt={cat.id}
+                  loading={i === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={i === 0 ? 'high' : 'auto'}
                   className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 {/* Overlay permanent */}
