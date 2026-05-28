@@ -4,11 +4,21 @@ require('dotenv').config()
 
 const app = express()
 
-const allowedOrigins = process.env.NODE_ENV === 'production'
-  ? (process.env.CORS_ORIGINS || 'https://foga-tech.com,https://www.foga-tech.com').split(',')
-  : true
+const corsOrigins = process.env.NODE_ENV === 'production'
+  ? (process.env.CORS_ORIGINS || 'https://foga-tech.com,https://www.foga-tech.com').split(',').map(o => o.trim())
+  : null
 
-app.use(cors({ origin: allowedOrigins }))
+app.use(cors({
+  origin: (origin, cb) => {
+    // No origin = curl/Postman/mobile → allow
+    if (!origin || !corsOrigins) return cb(null, true)
+    // Configured origins
+    if (corsOrigins.includes(origin)) return cb(null, true)
+    // Coolify sslip.io test URLs
+    if (/\.sslip\.io$/.test(origin)) return cb(null, true)
+    cb(new Error('Not allowed by CORS'))
+  },
+}))
 app.use(express.json({ limit: '1mb' }))
 
 app.get('/health', (req, res) => {
