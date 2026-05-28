@@ -8,7 +8,7 @@ const px = (id, w = 1280) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&cs=tinysrgb&w=${w}`
 
 // ── Hero / Construction sites ────────────────────────────────────────────────
-export const IMG_HERO_CHANTIER    = px(5298215,  1600) // construction workers South Africa
+export const IMG_HERO_CHANTIER    = px(5298215,  1200) // construction workers South Africa
 export const IMG_HERO_GENIE_RURAL = px(1144627,  1600) // rural road / field
 export const IMG_HERO_DEVIS       = px(2219024,  1600) // building under construction
 export const IMG_HERO_SMART_CITY  = px(31466702, 1600) // Kigali modern skyline Rwanda
