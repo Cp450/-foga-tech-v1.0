@@ -61,20 +61,16 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
 
       <!-- HEADER -->
       <tr>
-        <td style="background:linear-gradient(135deg,#1a3a6e 0%,#0d2247 100%);padding:32px 32px 24px;">
+        <td style="background:linear-gradient(135deg,#1a3a6e 0%,#0d2247 100%);padding:24px 32px;">
           <table width="100%" cellpadding="0" cellspacing="0">
             <tr>
-              <td>
-                <!-- Logo texte -->
-                <div style="margin-bottom:16px;">
-                  <span style="color:#234998;font-size:20px;font-weight:900;letter-spacing:1px;">FOGA</span><span style="color:#828383;font-size:20px;font-weight:900;letter-spacing:1px;">-TECH</span>
-                  <span style="color:#94a3b8;font-size:12px;margin-left:8px;font-weight:400;">International</span>
-                </div>
+              <td style="vertical-align:middle;">
                 <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Nouvelle demande de devis</div>
-                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#234998;font-weight:700;">DV-${esc(reference)}</span></div>
+                <div style="color:#94a3b8;font-size:14px;margin-top:6px;">Référence : <span style="color:#ffffff;font-weight:700;">DV-${esc(reference)}</span></div>
+                <div style="margin-top:10px;"><span style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;">A traiter</span></div>
               </td>
-              <td align="right" style="vertical-align:top;">
-                <div style="background:#234998;color:#fff;font-size:11px;font-weight:700;padding:6px 14px;border-radius:20px;white-space:nowrap;">A traiter</div>
+              <td align="right" style="vertical-align:middle;width:160px;">
+                <img src="${process.env.PUBLIC_BASE || ''}/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
               </td>
             </tr>
           </table>
@@ -140,15 +136,17 @@ async function sendDevisEmail({ reference, nom, tel, profile, email, ville, zone
         </td>
       </tr>
 
-      <!-- FOOTER -->
+      <!-- FOOTER IMAGE -->
       <tr>
-        <td style="background:#f8fafc;border-top:1px solid #e5e7eb;padding:20px 32px;text-align:center;">
-          <div style="color:#828383;font-size:12px;line-height:1.8;">
-            <span style="color:#234998;font-weight:700;">FOGA-TECH</span> International<br>
-            Tél. : (+242) 06.990.56.40 &nbsp;|&nbsp; (+242) 05.669.49.20<br>
-            foga.technology@gmail.com<br>
-            <span style="color:#d1d5db;">DV-${esc(reference)} &middot; ${dateStr}</span>
-          </div>
+        <td style="padding:0;line-height:0;">
+          <img src="${process.env.PUBLIC_BASE || ''}/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        </td>
+      </tr>
+
+      <!-- FOOTER REF -->
+      <tr>
+        <td style="background:#f0f4fa;padding:10px 32px;text-align:center;">
+          <div style="color:#828383;font-size:11px;">DV-${esc(reference)} &middot; ${dateStr}</div>
         </td>
       </tr>
 
