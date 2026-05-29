@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { api } from '../lib/api'
 
 /* ── Data ──────────────────────────────────────────────────────────── */
@@ -146,9 +146,10 @@ function MachineRow({ machine, selected, quantite, avecOperateur, onToggle, onQu
  * Formulaire 3 étapes pour demander un devis de location d'engins BTP.
  * Props : aucune (autonome, gère son propre état local)
  */
-export default function DevisLocationForm() {
+export default function DevisLocationForm({ prefillMachines = [] }) {
   const [step, setStep] = useState(1)           // 1 | 2 | 3
   const [submitted, setSubmitted] = useState(false)
+  const [reference, setReference] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const [errors, setErrors] = useState({})
@@ -172,6 +173,28 @@ export default function DevisLocationForm() {
     email: '',
     message: '',
   })
+
+  /* ── Liste affichée = engins pré-remplis (showroom) + liste générique ── */
+  const prefillRows = prefillMachines.map((m) => ({ id: m.id, nom: m.nom, icon: 'construction' }))
+  const displayMachines = [
+    ...prefillRows,
+    ...MACHINES_LIST.filter((m) => !prefillRows.some((p) => p.id === m.id)),
+  ]
+  const nameById = Object.fromEntries(displayMachines.map((m) => [m.id, m.nom]))
+
+  /* ── Auto-sélection des engins venus du showroom ─────────────────── */
+  const prefillKey = prefillMachines.map((m) => m.id).join(',')
+  useEffect(() => {
+    if (prefillMachines.length === 0) return
+    setMachinesSelected((prev) => {
+      const next = { ...prev }
+      prefillMachines.forEach((m) => {
+        if (!next[m.id]) next[m.id] = { quantite: 1, avecOperateur: false }
+      })
+      return next
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [prefillKey])
 
   /* ── Helpers ────────────────────────────────────────────────────── */
 
@@ -267,14 +290,11 @@ export default function DevisLocationForm() {
     e.preventDefault()
     if (!validateStep3()) return
 
-    const machines = Object.entries(machinesSelected).map(([id, cfg]) => {
-      const machine = MACHINES_LIST.find((m) => m.id === id)
-      return {
-        nom: machine ? machine.nom : id,
-        quantite: cfg.quantite,
-        avecOperateur: cfg.avecOperateur,
-      }
-    })
+    const machines = Object.entries(machinesSelected).map(([id, cfg]) => ({
+      nom: nameById[id] || id,
+      quantite: cfg.quantite,
+      avecOperateur: cfg.avecOperateur,
+    }))
 
     const payload = {
       machines,
@@ -292,7 +312,8 @@ export default function DevisLocationForm() {
     setSubmitError('')
 
     try {
-      await api.post('/api/devis_requests/location', payload)
+      const res = await api.post('/api/devis_requests/location', payload)
+      if (res?.reference) setReference(res.reference)
       setSubmitted(true)
     } catch (err) {
       setSubmitError(
@@ -301,6 +322,45 @@ export default function DevisLocationForm() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  /* ── Récap WhatsApp pré-rempli (même format que le mail) ──────────── */
+
+  function fmtDateFr(iso) {
+    if (!iso) return ''
+    const d = new Date(iso + 'T00:00:00')
+    return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+  }
+
+  function buildWaUrl() {
+    const refLabel = reference ? `LOC-${reference}` : ''
+
+    const machinesTxt = Object.entries(machinesSelected)
+      .map(([id, cfg]) => {
+        const nom = nameById[id] || id
+        const op = cfg.avecOperateur ? ' (avec opérateur)' : ' (sans opérateur)'
+        return `• ${nom} — Qté ${cfg.quantite}${op}`
+      })
+      .join('\n')
+
+    const lines = [
+      `*Demande de location d'engins — Foga-Tech*`,
+      refLabel ? `Réf : ${refLabel}` : null,
+      '',
+      `*Client :* ${contact.nom}`,
+      `*Tél :* ${contact.telephone}`,
+      contact.email.trim() ? `*Email :* ${contact.email}` : null,
+      '',
+      `*Période :* ${fmtDateFr(chantier.dateDebut)} → ${fmtDateFr(chantier.dateFin)}`,
+      `*Lieu :* ${chantier.lieuChantier}`,
+      chantier.accesChantier.trim() ? `*Accès :* ${chantier.accesChantier}` : null,
+      '',
+      '*Engins demandés :*',
+      machinesTxt,
+      contact.message.trim() ? `\n*Message :* ${contact.message}` : null,
+    ].filter((l) => l !== null)
+
+    return `https://wa.me/242069905640?text=${encodeURIComponent(lines.join('\n'))}`
   }
 
   /* ── Écran de succès ─────────────────────────────────────────────── */
@@ -330,7 +390,7 @@ export default function DevisLocationForm() {
         </p>
 
         <a
-          href="https://wa.me/242069905640"
+          href={buildWaUrl()}
           target="_blank"
           rel="noopener noreferrer"
           className="mt-8 inline-flex items-center gap-3 bg-[#25D366] text-white font-headline font-black px-8 py-4 rounded-2xl hover:brightness-110 active:scale-95 transition-all text-sm uppercase tracking-widest"
@@ -426,7 +486,7 @@ export default function DevisLocationForm() {
             )}
 
             <div className="flex flex-col gap-3">
-              {MACHINES_LIST.map((machine) => {
+              {displayMachines.map((machine) => {
                 const sel = !!machinesSelected[machine.id]
                 const cfg = machinesSelected[machine.id] || { quantite: 1, avecOperateur: false }
                 return (

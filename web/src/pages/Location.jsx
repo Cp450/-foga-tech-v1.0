@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback, useRef } from 'react'
+﻿import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO'
@@ -53,14 +53,15 @@ export default function Location() {
     })
   }, [])
 
-  const whatsappDevisGroupe = useCallback(() => {
-    const engins = ENGINS_DATA.filter(e => selected.has(e.id))
-    const liste = engins.map(e => `• ${e.nom} (${e.categorie})`).join('\n')
-    const msg = encodeURIComponent(
-      `Bonjour Foga-Tech,\n\nJe souhaite obtenir un devis pour la location des engins suivants :\n${liste}\n\nMerci de me préciser les disponibilités, la durée minimale et les modalités de livraison.`
-    )
-    window.open(`https://wa.me/242069905640?text=${msg}`, '_blank')
-  }, [selected])
+  // Engins sélectionnés → pré-remplis dans le formulaire (pipeline unique)
+  const prefillMachines = useMemo(
+    () => ENGINS_DATA.filter(e => selected.has(e.id)).map(e => ({ id: e.id, nom: e.nom })),
+    [selected]
+  )
+
+  const continuerDemande = useCallback(() => {
+    devisRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }, [])
 
   /* ── Navigation clavier (phase showroom) ───────────────────────── */
   const categoryEngins = activeCategory
@@ -411,7 +412,7 @@ export default function Location() {
                 <span className="material-symbols-outlined text-sm" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>
                   request_quote
                 </span>
-                Devis gratuit
+                Tarif personnalisé
               </div>
               <h2
                 className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em]"
@@ -428,7 +429,7 @@ export default function Location() {
 
           {/* Formulaire multi-steps */}
           <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-10">
-            <DevisLocationForm />
+            <DevisLocationForm prefillMachines={prefillMachines} />
           </div>
         </div>
       </section>
@@ -477,18 +478,18 @@ export default function Location() {
                 {selected.size} engin{selected.size > 1 ? 's' : ''} sélectionné{selected.size > 1 ? 's' : ''}
               </span>
             </div>
-            {/* Bouton devis groupé */}
+            {/* Bouton : continuer vers le formulaire (pipeline complet) */}
             <button
-              onClick={whatsappDevisGroupe}
+              onClick={continuerDemande}
               className="flex items-center gap-2 bg-secondary-container text-on-secondary-container font-headline font-black text-xs uppercase tracking-widest px-5 py-2.5 rounded-full hover:brightness-110 transition-all"
             >
               <span
                 className="material-symbols-outlined text-sm"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
-                chat
+                arrow_downward
               </span>
-              Devis groupé
+              Continuer ma demande
             </button>
             {/* Effacer */}
             <button
