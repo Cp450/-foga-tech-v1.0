@@ -96,7 +96,6 @@ router.post('/', async (req, res) => {
     email: email || null,
     message: description || null,
     statut: 'Nouveau',
-    created_at: now.toISOString(),
   })
 
   if (!savedOk && !mailOk) {
@@ -208,7 +207,6 @@ router.post('/location', async (req, res) => {
     date_fin: dateFin,
     message: message || null,
     statut: 'Nouveau',
-    created_at: new Date().toISOString(),
   })
 
   if (!mailOk) {
