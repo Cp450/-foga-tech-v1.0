@@ -542,4 +542,287 @@ async function sendNewsletterConfirmation(subscriberEmail) {
   })
 }
 
-module.exports = { sendDevisEmail, sendClientConfirmation, sendContactNotification, sendNewsletterConfirmation, getTransport }
+/**
+ * Formate une date ISO en date lisible française.
+ */
+function fmtDate(iso) {
+  if (!iso) return '—'
+  const d = new Date(iso)
+  if (isNaN(d)) return esc(iso)
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+/**
+ * Notification interne — nouvelle demande de location d'engins.
+ */
+async function sendLocationDevisEmail({ reference, nom, telephone, email, machines, dateDebut, dateFin, lieuChantier, accesChantier, message }) {
+  const transport = getTransport()
+  const to = process.env.DEVIS_TO || 'contact@foga-tech.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.com'
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  // Tableau des machines
+  const machinesRows = (Array.isArray(machines) ? machines : []).map((m, i) => `
+    <tr style="background:${i % 2 === 0 ? '#f8f9fa' : '#ffffff'};">
+      <td style="padding:10px 16px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb;">${esc(m.nom || m.name || '—')}</td>
+      <td style="padding:10px 16px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb;text-align:center;">${esc(String(m.quantite || m.quantity || 1))}</td>
+      <td style="padding:10px 16px;font-size:14px;border-bottom:1px solid #e5e7eb;text-align:center;">
+        ${m.avecOperateur ? '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">Avec opérateur</span>' : '<span style="background:#f3f4f6;color:#6b7280;padding:3px 10px;border-radius:12px;font-size:12px;">Sans opérateur</span>'}
+      </td>
+    </tr>`).join('')
+
+  const ctaHref = email ? `mailto:${esc(email)}` : `tel:${esc(telephone)}`
+  const ctaLabel = email ? `Répondre par email à ${esc(nom)}` : `Appeler : ${esc(telephone)}`
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <tr>
+        <td style="background:#ffffff;padding:20px 32px;border-bottom:2px solid #234998;">
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td style="vertical-align:middle;">
+                <div style="color:#234998;font-size:18px;font-weight:700;line-height:1.3;">Demande de devis location d'engins</div>
+                <div style="color:#828383;font-size:13px;margin-top:4px;">Référence : <strong>LOC-${esc(reference)}</strong></div>
+                <div style="margin-top:8px;"><span style="background:#FF6B00;color:#fff;font-size:11px;font-weight:700;padding:4px 12px;border-radius:20px;">LOCATION</span></div>
+              </td>
+              <td align="right" style="vertical-align:middle;width:160px;">
+                <img src="${apiBase}/public/logo_email.png" alt="Foga-Tech International" width="150" style="display:block;border:0;max-width:150px;">
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <!-- SECTION: CLIENT -->
+      <tr>
+        <td style="padding:24px 32px 0;">
+          ${sectionTitle('Informations client')}
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            ${row('Nom', `<strong>${esc(nom)}</strong>`)}
+            ${row('Téléphone', `<a href="tel:${esc(telephone)}" style="color:#234998;text-decoration:none;font-weight:600;">${esc(telephone)}</a>`)}
+            ${email ? row('Email', `<a href="mailto:${esc(email)}" style="color:#234998;text-decoration:none;">${esc(email)}</a>`) : ''}
+          </table>
+        </td>
+      </tr>
+
+      <!-- SECTION: DATES & LIEU -->
+      <tr>
+        <td style="padding:24px 32px 0;">
+          ${sectionTitle('Détails de la location')}
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            ${row('Début', fmtDate(dateDebut))}
+            ${row('Fin', fmtDate(dateFin))}
+            ${row('Lieu du chantier', esc(lieuChantier))}
+            ${accesChantier ? row('Accès chantier', esc(accesChantier)) : ''}
+          </table>
+        </td>
+      </tr>
+
+      <!-- SECTION: MACHINES -->
+      <tr>
+        <td style="padding:24px 32px 0;">
+          ${sectionTitle('Engins demandés')}
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            <tr style="background:#234998;">
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:left;">Engin</th>
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:center;">Quantité</th>
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:center;">Opérateur</th>
+            </tr>
+            ${machinesRows}
+          </table>
+        </td>
+      </tr>
+
+      ${message ? `
+      <!-- SECTION: MESSAGE -->
+      <tr>
+        <td style="padding:24px 32px 0;">
+          ${sectionTitle('Message complémentaire')}
+          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:16px;color:#374151;font-size:14px;line-height:1.7;white-space:pre-wrap;">${esc(message)}</div>
+        </td>
+      </tr>` : ''}
+
+      <!-- CTA -->
+      <tr>
+        <td style="padding:24px 32px 0;text-align:center;">
+          <a href="${ctaHref}" style="display:inline-block;background:#234998;color:#fff;font-size:13px;font-weight:700;padding:12px 28px;border-radius:8px;text-decoration:none;">${ctaLabel}</a>
+        </td>
+      </tr>
+
+      <!-- FOOTER IMAGE -->
+      <tr>
+        <td style="padding:24px 0 0;line-height:0;">
+          <img src="${apiBase}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        </td>
+      </tr>
+
+      <!-- FOOTER REF -->
+      <tr>
+        <td style="background:#f0f4fa;padding:10px 32px;text-align:center;">
+          <div style="color:#828383;font-size:11px;">LOC-${esc(reference)} &middot; ${dateStr}</div>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+
+</body>
+</html>`
+
+  await transport.sendMail({
+    from: `"Foga-Tech Devis" <${from}>`,
+    to,
+    replyTo: email || undefined,
+    subject: `[LOCATION] Demande de devis location d'engins — ${nom}`,
+    html,
+  })
+}
+
+/**
+ * Confirmation de demande de location d'engins au client.
+ */
+async function sendLocationClientConfirmation(clientEmail, { reference, nom, telephone, machines, dateDebut, dateFin, lieuChantier, accesChantier, message }) {
+  if (!clientEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clientEmail)) return
+  const transport = getTransport()
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER
+  const replyTo = process.env.DEVIS_TO || 'contact@foga-tech.com'
+  const apiBase = process.env.API_URL || 'https://api.foga-tech.com'
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+
+  const machinesRows = (Array.isArray(machines) ? machines : []).map((m, i) => `
+    <tr style="background:${i % 2 === 0 ? '#f8f9fa' : '#ffffff'};">
+      <td style="padding:10px 16px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb;">${esc(m.nom || m.name || '—')}</td>
+      <td style="padding:10px 16px;color:#111827;font-size:14px;border-bottom:1px solid #e5e7eb;text-align:center;">${esc(String(m.quantite || m.quantity || 1))}</td>
+      <td style="padding:10px 16px;font-size:14px;border-bottom:1px solid #e5e7eb;text-align:center;">
+        ${m.avecOperateur ? '<span style="background:#dcfce7;color:#166534;padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;">Avec opérateur</span>' : '<span style="background:#f3f4f6;color:#6b7280;padding:3px 10px;border-radius:12px;font-size:12px;">Sans opérateur</span>'}
+      </td>
+    </tr>`).join('')
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+
+      <!-- HEADER -->
+      <tr>
+        <td style="background:#234998;padding:28px 32px;text-align:center;">
+          <img src="${apiBase}/public/logo_email.png" alt="Foga-Tech International" width="140" style="display:block;margin:0 auto 12px;border:0;max-width:140px;">
+          <div style="color:#ffffff;font-size:20px;font-weight:700;line-height:1.3;">Votre demande de devis location est confirmée</div>
+          <div style="color:#a8c4f0;font-size:13px;margin-top:6px;">Référence : <strong>LOC-${esc(reference)}</strong></div>
+        </td>
+      </tr>
+
+      <!-- MESSAGE PRINCIPAL -->
+      <tr>
+        <td style="padding:28px 32px 0;">
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;">
+            Bonjour <strong>${esc(nom)}</strong>,
+          </p>
+          <p style="color:#374151;font-size:15px;line-height:1.7;margin:0 0 16px;">
+            Nous avons bien reçu votre demande de devis pour la location d'engins. Notre équipe va l'examiner et vous recontacter dans les <strong>2 heures ouvrées</strong>.
+          </p>
+          <div style="background:#f0f5ff;border-left:4px solid #234998;border-radius:0 8px 8px 0;padding:14px 16px;margin-bottom:24px;">
+            <p style="margin:0;color:#1e3a7a;font-size:13px;font-weight:700;">Votre numéro de référence : LOC-${esc(reference)}</p>
+            <p style="margin:4px 0 0;color:#4b5563;font-size:12px;">Conservez ce numéro pour tout suivi de votre demande.</p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- RÉCAPITULATIF -->
+      <tr>
+        <td style="padding:0 32px 0;">
+          <div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Récapitulatif de votre demande</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;margin-bottom:16px;">
+            ${row('Téléphone', esc(telephone))}
+            ${row('Début', fmtDate(dateDebut))}
+            ${row('Fin', fmtDate(dateFin))}
+            ${row('Lieu du chantier', esc(lieuChantier))}
+            ${accesChantier ? row('Accès chantier', esc(accesChantier)) : ''}
+            ${row('Date de soumission', dateStr)}
+          </table>
+        </td>
+      </tr>
+
+      <!-- ENGINS -->
+      <tr>
+        <td style="padding:0 32px 24px;">
+          <div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Engins demandés</div>
+          <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+            <tr style="background:#234998;">
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:left;">Engin</th>
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:center;">Quantité</th>
+              <th style="padding:10px 16px;color:#fff;font-size:12px;font-weight:700;text-align:center;">Opérateur</th>
+            </tr>
+            ${machinesRows}
+          </table>
+        </td>
+      </tr>
+
+      ${message ? `
+      <!-- MESSAGE -->
+      <tr>
+        <td style="padding:0 32px 24px;">
+          <div style="color:#234998;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:12px;">Votre message</div>
+          <div style="background:#f8fafc;border:1px solid #e5e7eb;border-radius:8px;padding:14px;color:#374151;font-size:13px;line-height:1.7;white-space:pre-wrap;">${esc(message)}</div>
+        </td>
+      </tr>` : ''}
+
+      <!-- CONTACT -->
+      <tr>
+        <td style="padding:0 32px 24px;">
+          <div style="background:#fefce8;border:1px solid #fde68a;border-radius:8px;padding:16px;text-align:center;">
+            <p style="margin:0 0 8px;color:#92400e;font-size:13px;font-weight:700;">Une question ? Contactez-nous directement</p>
+            <p style="margin:0;color:#78350f;font-size:13px;">
+              📞 <a href="tel:+242069905640" style="color:#92400e;text-decoration:none;font-weight:600;">+242 06 990 56 40</a>
+              &nbsp;|&nbsp;
+              💬 <a href="https://wa.me/242069905640" style="color:#92400e;text-decoration:none;font-weight:600;">WhatsApp</a>
+            </p>
+          </div>
+        </td>
+      </tr>
+
+      <!-- FOOTER IMAGE -->
+      <tr>
+        <td style="padding:0;line-height:0;">
+          <img src="${apiBase}/public/footer.png" alt="Foga-Tech International" width="600" style="display:block;width:100%;border:0;max-width:600px;">
+        </td>
+      </tr>
+
+      <!-- FOOTER REF -->
+      <tr>
+        <td style="background:#f0f4fa;padding:10px 32px;text-align:center;">
+          <div style="color:#828383;font-size:11px;">LOC-${esc(reference)} &middot; ${dateStr} &middot; Foga-Tech International</div>
+        </td>
+      </tr>
+
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`
+
+  await transport.sendMail({
+    from: `"Foga-Tech International" <${from}>`,
+    to: clientEmail,
+    replyTo,
+    subject: `Votre demande de devis location d'engins - Foga-Tech [LOC-${reference}]`,
+    html,
+  })
+}
+
+module.exports = { sendDevisEmail, sendClientConfirmation, sendContactNotification, sendNewsletterConfirmation, sendLocationDevisEmail, sendLocationClientConfirmation, getTransport }

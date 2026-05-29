@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { query } = require('../db')
-const { sendDevisEmail, sendClientConfirmation } = require('../lib/mailer')
+const { sendDevisEmail, sendClientConfirmation, sendLocationDevisEmail, sendLocationClientConfirmation } = require('../lib/mailer')
 const { generatePdf } = require('../lib/pdf')
 
 function makeReference() {
@@ -99,6 +99,101 @@ router.post('/', async (req, res) => {
     id: savedId,
     reference,
     persisted: savedOk,
+    emailed: mailOk,
+    clientConfirmed: clientMailOk,
+  })
+})
+
+// POST /api/devis_requests/location — demande de location d'engins
+router.post('/location', async (req, res) => {
+  const {
+    machines,
+    dateDebut,
+    dateFin,
+    lieuChantier,
+    accesChantier,
+    nom,
+    telephone,
+    email,
+    message,
+  } = req.body
+
+  // --- Validation ---
+  const errors = []
+
+  if (!nom || !nom.trim()) errors.push('Le champ nom est requis.')
+  if (!telephone || !telephone.trim()) errors.push('Le champ telephone est requis.')
+  if (!lieuChantier || !lieuChantier.trim()) errors.push('Le champ lieuChantier est requis.')
+  if (!Array.isArray(machines) || machines.length === 0) {
+    errors.push('Au moins une machine doit être sélectionnée.')
+  }
+  if (!dateDebut) {
+    errors.push('La date de début est requise.')
+  }
+  if (!dateFin) {
+    errors.push('La date de fin est requise.')
+  }
+  if (dateDebut && dateFin && new Date(dateDebut) >= new Date(dateFin)) {
+    errors.push('La date de début doit être antérieure à la date de fin.')
+  }
+
+  if (errors.length > 0) {
+    return res.status(400).json({ success: false, errors })
+  }
+
+  const reference = makeReference()
+  let mailOk = false
+  let clientMailOk = false
+
+  // Email interne équipe
+  try {
+    await sendLocationDevisEmail({
+      reference,
+      nom,
+      telephone,
+      email,
+      machines,
+      dateDebut,
+      dateFin,
+      lieuChantier,
+      accesChantier,
+      message,
+    })
+    mailOk = true
+  } catch (mailErr) {
+    console.error('[devis/location] mail équipe error (non-bloquant):', mailErr.message)
+  }
+
+  // Email confirmation client (uniquement si email fourni)
+  if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    try {
+      await sendLocationClientConfirmation(email, {
+        reference,
+        nom,
+        telephone,
+        machines,
+        dateDebut,
+        dateFin,
+        lieuChantier,
+        accesChantier,
+        message,
+      })
+      clientMailOk = true
+    } catch (clientMailErr) {
+      console.warn('[devis/location] mail client error (non-bloquant):', clientMailErr.message)
+    }
+  }
+
+  if (!mailOk) {
+    return res.status(500).json({
+      success: false,
+      error: "Aucun canal de transmission disponible. Réessayez ou contactez-nous sur WhatsApp.",
+    })
+  }
+
+  return res.status(201).json({
+    success: true,
+    reference,
     emailed: mailOk,
     clientConfirmed: clientMailOk,
   })
