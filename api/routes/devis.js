@@ -3,6 +3,7 @@ const router = express.Router()
 const { query } = require('../db')
 const { sendDevisEmail, sendClientConfirmation, sendLocationDevisEmail, sendLocationClientConfirmation } = require('../lib/mailer')
 const { generatePdf } = require('../lib/pdf')
+const { saveDevisToNocoDB } = require('../lib/nocodb')
 
 function makeReference() {
   const y = new Date().getFullYear()
@@ -86,6 +87,17 @@ router.post('/', async (req, res) => {
       console.warn('[devis] client confirmation email error (non-bloquant):', clientMailErr.message)
     }
   }
+
+  // 5. NocoDB CRM (fire-and-forget, non-bloquant)
+  saveDevisToNocoDB({
+    type: 'standard',
+    nom,
+    telephone: tel,
+    email: email || null,
+    message: description || null,
+    statut: 'Nouveau',
+    created_at: now.toISOString(),
+  })
 
   if (!savedOk && !mailOk) {
     return res.status(500).json({
@@ -183,6 +195,21 @@ router.post('/location', async (req, res) => {
       console.warn('[devis/location] mail client error (non-bloquant):', clientMailErr.message)
     }
   }
+
+  // NocoDB CRM (fire-and-forget, non-bloquant)
+  saveDevisToNocoDB({
+    type: 'location',
+    nom,
+    telephone,
+    email: email || null,
+    lieu_chantier: lieuChantier,
+    machines: JSON.stringify(machines),
+    date_debut: dateDebut,
+    date_fin: dateFin,
+    message: message || null,
+    statut: 'Nouveau',
+    created_at: new Date().toISOString(),
+  })
 
   if (!mailOk) {
     return res.status(500).json({
