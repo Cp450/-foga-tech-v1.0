@@ -292,7 +292,7 @@ export default function DevisLocationForm() {
     setSubmitError('')
 
     try {
-      await api.post('/api/devis/location', payload)
+      await api.post('/api/devis_requests/location', payload)
       setSubmitted(true)
     } catch (err) {
       setSubmitError(
