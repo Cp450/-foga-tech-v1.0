@@ -1,9 +1,10 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+﻿import { useState, useEffect, useCallback, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO'
 import TextReveal from '../components/TextReveal'
 import CategoryReveal from '../components/CategoryReveal'
+import DevisLocationForm from '../components/DevisLocationForm'
 // Note: analytics page_views — peut être branché plus tard sur l'API si besoin
 
 /* ── Data ─────────────────────────────────────────────────────────── */
@@ -37,6 +38,7 @@ const CATS = [
 
 /* ── Composant principal ───────────────────────────────────────────── */
 export default function Location() {
+  const devisRef = useRef(null)
   const [phase, setPhase] = useState('categories') // 'categories' | 'reveal' | 'showroom'
   const [activeCategory, setActiveCategory] = useState(null)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -394,6 +396,42 @@ export default function Location() {
           </section>
         </div>
       )}
+
+      {/* ── SECTION DEVIS LOCATION ─────────────────────────────────── */}
+      <section
+        ref={devisRef}
+        id="devis-location"
+        className="bg-[#001022] border-t border-white/10 px-6 py-20"
+      >
+        <div className="max-w-5xl mx-auto">
+          {/* Header section */}
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-14">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-[#f97316]/15 border border-[#f97316]/30 text-[#f97316] font-label text-[11px] uppercase tracking-widest px-4 py-2 rounded-full mb-5">
+                <span className="material-symbols-outlined text-sm" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  request_quote
+                </span>
+                Devis gratuit
+              </div>
+              <h2
+                className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em]"
+                style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}
+              >
+                Demander un devis<br />
+                <span className="text-[#f97316]">de location</span>
+              </h2>
+            </div>
+            <p className="font-body text-white/45 text-sm max-w-xs leading-relaxed md:text-right">
+              Renseignez vos besoins en 3 étapes — notre équipe vous rappelle sous 2h ouvrées avec un tarif personnalisé.
+            </p>
+          </div>
+
+          {/* Formulaire multi-steps */}
+          <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-10">
+            <DevisLocationForm />
+          </div>
+        </div>
+      </section>
 
       {/* ── SECTION TRUST ──────────────────────────────────────────── */}
       <section className="border-t border-white/10 bg-[#001022]">
