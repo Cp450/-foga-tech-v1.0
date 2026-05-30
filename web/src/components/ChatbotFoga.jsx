@@ -20,37 +20,37 @@ const FAQS = [
   },
   {
     triggers: ['devis', 'prix', 'combien', 'cout', 'tarif', 'budget', 'estimation'],
-    response: 'Nos devis sont **offerts sous 48 h** après visite technique. Vous pouvez aussi utiliser notre [Calculateur Budget](#calculateur) sur la page d\'accueil pour une estimation immédiate.\n\nPour un devis précis, envoyez-nous votre projet sur WhatsApp → +242 06 990 56 40',
+    response: 'Nos devis sont **offerts sous 48 h** après visite technique.\n\nEstimez votre budget tout de suite avec notre [Calculateur Budget](/devis-particulier).\n\n👉 [Demander mon devis gratuit](/devis)\n💬 [Envoyer mon projet sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20je%20souhaite%20un%20devis%20pour%20mon%20projet)',
     lingala: 'Devis na biso ezali ya ofele (gratuit). Tokosala estimasyon na 48 h.',
   },
   {
     triggers: ['engin', 'grue', 'bulldozer', 'pelle', 'camion', 'location', 'réserver', 'louer'],
-    response: 'Notre parc comprend **65 engins** disponibles à la location :\n• Pelleteuses 200K FCFA/j\n• Bulldozers 250K FCFA/j\n• Grues mobiles 400K FCFA/j\n• Bétonnières 80K FCFA/j\n\nConfirmation sous 2h · Livraison chantier sous 24h.',
+    response: 'Notre parc comprend **65 engins** disponibles à la location :\n• Pelleteuses 200K FCFA/j\n• Bulldozers 250K FCFA/j\n• Grues mobiles 400K FCFA/j\n• Bétonnières 80K FCFA/j\n\nConfirmation sous 2h · Livraison chantier sous 24h.\n\n👉 [Choisir mes engins & demander un tarif](/location)\n💬 [Réserver sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20je%20veux%20louer%20un%20engin%20BTP)',
     lingala: 'Biso tozali na engins mingi. Tokopesa yo na 2h soki ozali na urgence.',
   },
   {
     triggers: ['délai', 'temps', 'durée', 'combien de temps', 'quand', 'planning'],
-    response: 'Chaque chantier est unique — la durée dépend de plusieurs paramètres :\n• **Surface** et complexité technique\n• **Accessibilité** du site & logistique\n• **Saison** (sèche/pluies) et approvisionnement\n• Normes spécifiques (santé, ERP, industriel)\n\nNous nous engageons sur :\n• **Planning contractuel** détaillé au devis\n• **Reporting hebdomadaire** d\'avancement\n• Délais **fermes par écrit** dans le contrat\n\nPour une estimation précise, consultez notre [page devis](/devis) ou contactez-nous : **WhatsApp +242 06 990 56 40**',
+    response: 'Chaque chantier est unique — la durée dépend de plusieurs paramètres :\n• **Surface** et complexité technique\n• **Accessibilité** du site & logistique\n• **Saison** (sèche/pluies) et approvisionnement\n• Normes spécifiques (santé, ERP, industriel)\n\nNous nous engageons sur :\n• **Planning contractuel** détaillé au devis\n• **Reporting hebdomadaire** d\'avancement\n• Délais **fermes par écrit** dans le contrat\n\n👉 [Demander mon devis gratuit](/devis)\n💬 [Discuter du planning sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20je%20veux%20discuter%20du%20planning%20de%20mon%20chantier)',
     lingala: 'Tango ya travaux ezali na variables mingi. Tokoyebisa yo planning ya solo na devis.',
   },
   {
     triggers: ['certification', 'diplôme', 'qualité', 'iso', 'garantie', 'certifié'],
-    response: 'Nos agréments &amp; certifications :\n• **Agrément Ministère BTP Congo**\n• **Ordre des Ingénieurs Congo**\n• **Normes BNC &amp; Eurocode 2** appliquées\n• **HQE** (en cours)\n\nToutes nos attestations sont disponibles en PDF sur demande.',
+    response: 'Nos agréments &amp; certifications :\n• **Agrément Ministère BTP Congo**\n• **Ordre des Ingénieurs Congo**\n• **Normes BNC &amp; Eurocode 2** appliquées\n• **HQE** (en cours)\n\nToutes nos attestations sont disponibles en PDF sur demande.\n\n👉 [Voir nos réalisations](/portfolio)\n💬 [Demander les attestations](https://wa.me/242069905640?text=Bonjour%2C%20je%20souhaite%20recevoir%20vos%20attestations%20et%20agr%C3%A9ments)',
     lingala: 'Tozali agréés na Ministère BTP na Congo, na Ordre des Ingénieurs.',
   },
   {
     triggers: ['paiement', 'payer', 'acompte', 'virement', 'momo', 'airtel', 'mobile money'],
-    response: 'Modes de paiement acceptés :\n• **MTN MoMo**\n• **Airtel Money**\n• **Virement bancaire**\n• **Espèces** (acompte initial uniquement)\n\nStructure typique : 30% acompte · 40% mi-travaux · 30% à la livraison.',
+    response: 'Modes de paiement acceptés :\n• **MTN MoMo**\n• **Airtel Money**\n• **Virement bancaire**\n• **Espèces** (acompte initial uniquement)\n\nStructure typique : 30% acompte · 40% mi-travaux · 30% à la livraison.\n\n👉 [Demander mon devis gratuit](/devis)\n💬 [Poser une question sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20j%27ai%20une%20question%20sur%20le%20paiement)',
     lingala: 'Tozali kozua MTN MoMo, Airtel Money, na virement bancaire. 30% liboso, 40% nzela, 30% sika basilisi.',
   },
   {
     triggers: ['énergie', 'solaire', 'panneau', 'durable', 'écologie', 'environnement', 'vert'],
-    response: 'Foga-Tech intègre des solutions durables dans ses chantiers :\n• **Panneaux solaires** pour alimenter les sites isolés\n• **Gestion de l\'eau** — forages, retenues, irrigation\n• **Matériaux locaux** privilégiés pour réduire l\'empreinte carbone\n\nPour un projet intégrant ces solutions : **WhatsApp +242 06 990 56 40**',
+    response: 'Foga-Tech intègre des solutions durables dans ses chantiers :\n• **Panneaux solaires** pour alimenter les sites isolés\n• **Gestion de l\'eau** — forages, retenues, irrigation\n• **Matériaux locaux** privilégiés pour réduire l\'empreinte carbone\n\n👉 [Découvrir nos solutions durables](/genie-rural/solutions-durables)\n💬 [Discuter de mon projet sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20je%20veux%20un%20projet%20avec%20solutions%20durables)',
     lingala: 'Biso tozali kozua solutions durables na misala na biso — soleil, mai, materiaux ya Congo.',
   },
   {
     triggers: ['whatsapp', 'contact', 'telephone', 'appel', 'joindre', 'numéro'],
-    response: 'Nous joindre :\n• **WhatsApp** : +242 06 990 56 40\n• **Réponse garantie** sous 15 minutes (heures ouvrées)\n• Disponible 7j/7 pour les urgences chantier',
+    response: 'Nous joindre :\n💬 [WhatsApp · +242 06 990 56 40](https://wa.me/242069905640?text=Bonjour%20Foga-Tech)\n📞 Tél : +242 06 990 56 40 · +242 05 669 49 20\n\n• **Réponse garantie** sous 15 minutes (heures ouvrées)\n• Disponible 7j/7 pour les urgences chantier\n\n👉 [Demander mon devis gratuit](/devis)',
     lingala: 'WhatsApp: +242 06 990 56 40. Tokoyanola na 15 minutes.',
   },
   {
@@ -84,7 +84,7 @@ function getBotResponse(input) {
   }
   if (THANKS.some((t) => lower.includes(t))) {
     return {
-      text: "Avec plaisir! N'hésitez pas si vous avez d'autres questions.\n\nPour un accompagnement personnalisé : **WhatsApp +242 06 990 56 40**",
+      text: "Avec plaisir! N'hésitez pas si vous avez d'autres questions.\n\n👉 [Demander mon devis gratuit](/devis)\n💬 [Parler à un expert sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20je%20souhaite%20un%20accompagnement)",
       lingala: null,
     }
   }
@@ -101,7 +101,7 @@ function getBotResponse(input) {
   if (best) return { text: best.response, lingala: best.lingala }
 
   return {
-    text: "Je n'ai pas encore d'info précise sur ce sujet. Voici ce que je sais répondre :\n\n• **Qui sommes-nous** — Foga-Tech, métiers, équipe\n• **Nos services** — civil, rural, location engins\n• **Devis & tarifs** — délais, paiement, MoMo\n• **Délais & planning** — durée chantier\n• **Certifications** — agréments, normes\n• **Localisation** — Brazzaville, Pool, Pointe-Noire\n• **Portfolio** — nos réalisations\n\nOu directement notre équipe :\n**WhatsApp** : +242 06 990 56 40 — réponse sous 24h.",
+    text: "Je n'ai pas encore d'info précise sur ce sujet. Voici ce que je sais répondre :\n\n• **Qui sommes-nous** — Foga-Tech, métiers, équipe\n• **Nos services** — civil, rural, location engins\n• **Devis & tarifs** — délais, paiement, MoMo\n• **Délais & planning** — durée chantier\n• **Certifications** — agréments, normes\n• **Localisation** — Brazzaville, Pool, Pointe-Noire\n• **Portfolio** — nos réalisations\n\nLe plus rapide pour votre projet :\n👉 [Demander mon devis gratuit](/devis)\n💬 [Parler à un expert sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20j%27ai%20une%20question)",
     lingala: 'Nazali na info te likolo ya likambo oyo. Tuna ngai na sujet mosusu, to benga WhatsApp: +242 06 990 56 40.',
   }
 }

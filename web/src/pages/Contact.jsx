@@ -45,8 +45,8 @@ const DIRECTS = [
   {
     icon: 'call',
     label: 'Telephone',
-    value: '+242 06 990 56 40',
-    href: 'tel:+242069905640',
+    value: '+242 05 669 49 20',
+    href: 'tel:+242056694920',
     note: 'Lun-Sam · 8h-18h',
   },
 ]

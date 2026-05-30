@@ -684,7 +684,7 @@ export default function DemandeDevis() {
                   </div>
                   <p style={{ fontSize: 10, color: "#8a96a3", lineHeight: 1.6 }}>
                     Foga-Tech International · Congo-Brazzaville<br />
-                    Tél : +242 06 990 56 40 / 06 990 56 40<br />
+                    Tél : +242 06 990 56 40 / 05 669 49 20<br />
                     contact@foga-tech.com · foga-tech.com
                   </p>
                 </div>
@@ -709,7 +709,7 @@ export default function DemandeDevis() {
                   <p style={{ fontWeight: 700, fontSize: 12, color: "#001022" }}>Foga-Tech International</p>
                   <p style={{ fontSize: 11, color: "#4a5568", lineHeight: 1.6 }}>
                     Brazzaville, Congo<br />
-                    +242 06 990 56 40 / 06 990 56 40<br />
+                    +242 06 990 56 40 / 05 669 49 20<br />
                     contact@foga-tech.com
                   </p>
                 </div>
