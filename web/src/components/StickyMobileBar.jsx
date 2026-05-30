@@ -8,9 +8,9 @@ export default function StickyMobileBar() {
         className="flex-1 flex flex-col items-center justify-center gap-1 py-3 bg-[#002045] border-t border-r border-white/10 active:bg-white/10"
         aria-label="Appeler Foga-Tech"
       >
-        <span className="material-symbols-outlined text-[22px] text-secondary-container" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>
-          call
-        </span>
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px] text-secondary-container" aria-hidden="true">
+          <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+        </svg>
         <span className="text-[10px] font-bold uppercase tracking-wider text-white">Appeler</span>
       </a>
 
@@ -32,9 +32,9 @@ export default function StickyMobileBar() {
         className="flex-1 flex flex-col items-center justify-center gap-1 py-3 bg-secondary-container border-t border-white/10 active:brightness-90"
         aria-label="Demander un devis"
       >
-        <span className="material-symbols-outlined text-[22px] text-on-secondary-container" aria-hidden="true" style={{ fontVariationSettings: "'FILL' 1" }}>
-          description
-        </span>
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-[22px] h-[22px] text-on-secondary-container" aria-hidden="true">
+          <path d="M6 2c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6H6zm7 7V3.5L18.5 9H13z"/>
+        </svg>
         <span className="text-[10px] font-bold uppercase tracking-wider text-on-secondary-container">Devis</span>
       </Link>
     </div>
