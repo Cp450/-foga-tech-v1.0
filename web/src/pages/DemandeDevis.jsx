@@ -365,7 +365,7 @@ export default function DemandeDevis() {
           {/* Headline */}
           <h1
             className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-8 animate-fade-slide-up whitespace-nowrap"
-            style={{ fontSize: "clamp(2.5rem, 6vw, 90px)" }}
+            style={{ fontSize: "clamp(23px, 6vw, 90px)" }}
           >
             Votre projet, <span className="text-secondary-container">livré.</span>
           </h1>
@@ -421,7 +421,7 @@ export default function DemandeDevis() {
           <section className="w-full max-w-4xl">
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] text-center mb-12"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 4rem)" }}
             >
               Votre projet, c&apos;est pour...
             </h1>
@@ -460,7 +460,7 @@ export default function DemandeDevis() {
           <section className="w-full max-w-3xl">
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] text-center mb-12"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 4rem)" }}
             >
               Quel type de travaux&nbsp;?
             </h1>
@@ -500,7 +500,7 @@ export default function DemandeDevis() {
           <section className="w-full max-w-lg">
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] text-center mb-3"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 4rem)" }}
             >
               Votre chantier est...
             </h1>
@@ -551,7 +551,7 @@ export default function DemandeDevis() {
           <section className="w-full max-w-lg">
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] text-center mb-3"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 4rem)" }}
             >
               On se rappelle comment&nbsp;?
             </h1>
@@ -613,7 +613,7 @@ export default function DemandeDevis() {
           <section className="w-full max-w-lg">
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] text-center mb-3"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 4rem)" }}
             >
               Un mot sur votre projet&nbsp;?
             </h1>
@@ -839,7 +839,7 @@ export default function DemandeDevis() {
 
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-4"
-              style={{ fontSize: "clamp(2rem, 5vw, 3.5rem)" }}
+              style={{ fontSize: "clamp(19px, 5vw, 3.5rem)" }}
             >
               Demande envoyée{form.prenom ? ", " + form.prenom : ""}&nbsp;!
             </h1>

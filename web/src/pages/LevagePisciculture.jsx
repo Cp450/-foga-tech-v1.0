@@ -96,7 +96,7 @@ export default function LevagePisciculture() {
                 Génie Rural &amp; Innovation
               </span>
             </motion.div>
-            <div style={{ fontSize: "clamp(52px,7.5vw,100px)" }}>
+            <div style={{ fontSize: "clamp(30px, 7.5vw, 100px)" }}>
               <TextReveal
                 text="Élevage"
                 as="h1"

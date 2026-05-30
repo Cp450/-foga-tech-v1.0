@@ -43,7 +43,7 @@ export default function NotFound() {
           <span
             className="font-headline font-black leading-none select-none"
             style={{
-              fontSize: 'clamp(7rem, 20vw, 160px)',
+              fontSize: 'clamp(65px, 20vw, 160px)',
               color: 'transparent',
               WebkitTextStroke: '2px rgba(255,107,0,0.3)',
               letterSpacing: '-0.05em',
@@ -55,7 +55,7 @@ export default function NotFound() {
           <span
             className="absolute inset-0 flex items-center justify-center font-headline font-black leading-none"
             style={{
-              fontSize: 'clamp(7rem, 20vw, 160px)',
+              fontSize: 'clamp(65px, 20vw, 160px)',
               color: 'rgba(255,107,0,0.08)',
               letterSpacing: '-0.05em',
               filter: 'blur(2px)',
@@ -78,7 +78,7 @@ export default function NotFound() {
         {/* Heading */}
         <h1
           className="font-headline font-black text-white tracking-tight leading-tight mb-4"
-          style={{ fontSize: 'clamp(1.75rem, 5vw, 3rem)' }}
+          style={{ fontSize: 'clamp(18px, 5vw, 3rem)' }}
         >
           Page introuvable
         </h1>

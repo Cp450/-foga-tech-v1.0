@@ -70,7 +70,7 @@ export default function PartenairesPage() {
             </span>
             <span className="w-6 h-px bg-[#4A7BC8]/60 flex-shrink-0" />
           </div>
-          <div style={{ fontSize: "clamp(40px, 6vw, 72px)" }}>
+          <div style={{ fontSize: "clamp(23px, 6vw, 72px)" }}>
             <TextReveal
               text="Partenaires & clients"
               as="h1"

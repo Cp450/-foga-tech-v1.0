@@ -114,7 +114,7 @@ export default function GenieCivil() {
             {/* Headline */}
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-6 animate-fade-slide-up"
-              style={{ fontSize: "clamp(48px,7vw,92px)" }}
+              style={{ fontSize: "clamp(28px, 7vw, 92px)" }}
             >
               Génie civil<br />
               & BTP<br />
@@ -186,7 +186,7 @@ export default function GenieCivil() {
               <div key={s.label}>
                 <p
                   className="font-headline font-black text-white leading-none"
-                  style={{ fontSize: 'clamp(1.6rem, 2.8vw, 2.4rem)' }}
+                  style={{ fontSize: 'clamp(18px, 2.8vw, 2.4rem)' }}
                 >
                   {s.val}
                 </p>

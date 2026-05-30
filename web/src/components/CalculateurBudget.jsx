@@ -148,7 +148,7 @@ export default function CalculateurBudget() {
         </div>
         <h2
           className="font-headline font-black text-white leading-none tracking-tight mb-3"
-          style={{ fontSize: "clamp(2.2rem,5vw,3.5rem)" }}
+          style={{ fontSize: "clamp(20px, 5vw, 3.5rem)" }}
         >
           Calculateur <span style={{ color: ORANGE }}>Budget</span>
         </h2>
@@ -461,7 +461,7 @@ export default function CalculateurBudget() {
               </p>
               <p
                 style={{
-                  fontSize: "clamp(1.8rem,4vw,2.8rem)",
+                  fontSize: "clamp(18px, 4vw, 2.8rem)",
                   color: ORANGE,
                   fontWeight: 900,
                   lineHeight: 1,

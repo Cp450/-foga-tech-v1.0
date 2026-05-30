@@ -91,7 +91,7 @@ export default function Contact() {
           <p className="font-label font-bold text-[11px] uppercase tracking-[0.22em] text-secondary-container mb-6">
             · Brazzaville &amp; Pointe-Noire ·
           </p>
-          <div style={{ fontSize: 'clamp(2.2rem, 5.5vw, 4rem)' }}>
+          <div style={{ fontSize: 'clamp(20px, 5.5vw, 4rem)' }}>
             <TextReveal
               text="Parlons de"
               as="h1"

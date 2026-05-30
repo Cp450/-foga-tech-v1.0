@@ -137,7 +137,7 @@ export default function APropos() {
               </span>
             </motion.div>
 
-            <div style={{ fontSize: 'clamp(48px, 7vw, 92px)' }}>
+            <div style={{ fontSize: 'clamp(28px, 7vw, 92px)' }}>
               <TextReveal
                 text="Bâtir le Congo"
                 as="h1"
@@ -193,7 +193,7 @@ export default function APropos() {
               >
                 <p
                   className="font-headline font-black text-secondary-container leading-none"
-                  style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)' }}
+                  style={{ fontSize: 'clamp(18px, 3.5vw, 2.8rem)' }}
                 >
                   {s.val}
                 </p>
@@ -217,7 +217,7 @@ export default function APropos() {
           </div>
           <h2
             className="font-headline font-black text-primary leading-[0.95] tracking-[-0.02em] mb-8"
-            style={{ fontSize: 'clamp(28px, 4.5vw, 52px)' }}
+            style={{ fontSize: 'clamp(18px, 4.5vw, 52px)' }}
           >
             Foga-Tech International.
           </h2>
@@ -257,7 +257,7 @@ export default function APropos() {
           </div>
           <h2
             className="font-headline font-black text-white leading-[0.95] tracking-[-0.02em] mb-4"
-            style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+            style={{ fontSize: 'clamp(18px, 4vw, 44px)' }}
           >
             12 ans de chantiers.
           </h2>
@@ -283,7 +283,7 @@ export default function APropos() {
             </div>
             <h2
               className="font-headline font-black text-primary leading-[0.95] tracking-[-0.02em]"
-              style={{ fontSize: 'clamp(28px, 4.5vw, 48px)' }}
+              style={{ fontSize: 'clamp(18px, 4.5vw, 48px)' }}
             >
               Ce qui nous tient debout.
             </h2>
@@ -362,7 +362,7 @@ export default function APropos() {
               </div>
               <h2
                 className="font-headline font-black text-primary leading-[0.95] tracking-[-0.02em]"
-                style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+                style={{ fontSize: 'clamp(18px, 4vw, 44px)' }}
               >
                 Une équipe terrain,<br />structurée par métier.
               </h2>
@@ -421,7 +421,7 @@ export default function APropos() {
               </div>
               <h2
                 className="font-headline font-black text-primary leading-[0.95] tracking-[-0.02em]"
-                style={{ fontSize: 'clamp(26px, 4vw, 44px)' }}
+                style={{ fontSize: 'clamp(18px, 4vw, 44px)' }}
               >
                 Six expertises.<br />Un seul interlocuteur.
               </h2>

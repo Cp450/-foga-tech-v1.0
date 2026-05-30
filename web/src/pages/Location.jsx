@@ -104,7 +104,7 @@ export default function Location() {
         <section className="min-h-screen flex flex-col px-6 pt-24 pb-16">
           {/* Titre */}
           <div className="text-center mb-16">
-            <div style={{ fontSize: 'clamp(2.5rem, 5vw, 4.5rem)' }}>
+            <div style={{ fontSize: 'clamp(23px, 5vw, 4.5rem)' }}>
               <TextReveal
                 text="Quel engin pour"
                 as="h1"
@@ -197,7 +197,7 @@ export default function Location() {
             {/* Nom engin */}
             <h2
               className="font-headline font-black text-white leading-[0.88] tracking-[-0.04em] mb-2"
-              style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)' }}
+              style={{ fontSize: 'clamp(23px, 5vw, 4rem)' }}
             >
               {current.nom}
             </h2>
@@ -416,7 +416,7 @@ export default function Location() {
               </div>
               <h2
                 className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em]"
-                style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}
+                style={{ fontSize: 'clamp(19px, 4vw, 3rem)' }}
               >
                 Demander un devis<br />
                 <span className="text-[#f97316]">de location</span>

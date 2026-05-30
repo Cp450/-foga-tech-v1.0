@@ -349,7 +349,7 @@ export default function Portfolio() {
                 Portfolio · 2012 → 2024
               </span>
             </motion.div>
-            <div style={{ fontSize: "clamp(52px,7.5vw,100px)" }}>
+            <div style={{ fontSize: "clamp(30px, 7.5vw, 100px)" }}>
               <TextReveal
                 text="Chaque chantier"
                 as="h1"
@@ -393,7 +393,7 @@ export default function Portfolio() {
           </div>
           <h2
             className="font-headline font-black text-white leading-[0.95] tracking-[-0.02em] mb-4"
-            style={{ fontSize: "clamp(28px, 4.5vw, 52px)" }}
+            style={{ fontSize: "clamp(18px, 4.5vw, 52px)" }}
           >
             12 ans de chantiers
           </h2>

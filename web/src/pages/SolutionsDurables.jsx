@@ -86,7 +86,7 @@ export default function SolutionsDurables() {
                 </span>
               </motion.div>
 
-              <div style={{ fontSize: "clamp(48px,7vw,92px)" }}>
+              <div style={{ fontSize: "clamp(28px, 7vw, 92px)" }}>
                 <TextReveal
                   text="Solutions durables"
                   as="h1"

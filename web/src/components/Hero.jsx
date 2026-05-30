@@ -66,7 +66,7 @@ export default function Hero() {
             className="relative z-10"
             style={{ y: textY }}
           >
-            <div style={{ fontSize: "clamp(3.5rem, 7.5vw, 7rem)" }}>
+            <div style={{ fontSize: "clamp(32px, 7.5vw, 7rem)" }}>
               <TextReveal
                 text="Bâtisseurs"
                 as="h1"
@@ -160,7 +160,7 @@ export default function Hero() {
               >
                 <p
                   className="font-headline font-black text-white leading-none"
-                  style={{ fontSize: "clamp(1.6rem, 2.8vw, 2.5rem)" }}
+                  style={{ fontSize: "clamp(18px, 2.8vw, 2.5rem)" }}
                 >
                   <AnimatedCounter end={s.val} suffix={s.suffix} duration={1600} />
                 </p>

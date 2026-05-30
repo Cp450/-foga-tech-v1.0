@@ -344,7 +344,7 @@ export default function Home() {
 
             <h1
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-6 animate-fade-slide-up"
-              style={{ fontSize: "clamp(52px,7.5vw,100px)" }}
+              style={{ fontSize: "clamp(30px, 7.5vw, 100px)" }}
             >
               Concevoir,<br />
               bâtir et livrer<br />
@@ -396,7 +396,7 @@ export default function Home() {
               <div key={s.label}>
                 <p
                   className="font-headline font-black text-white leading-none"
-                  style={{ fontSize: 'clamp(1.6rem, 2.8vw, 2.4rem)' }}
+                  style={{ fontSize: 'clamp(18px, 2.8vw, 2.4rem)' }}
                 >
                   {s.val}{s.suffix}
                 </p>
@@ -432,7 +432,7 @@ export default function Home() {
             <Overline>Vous êtes</Overline>
             <h2
               className="font-headline font-black text-primary mt-4 leading-none tracking-[-0.02em]"
-              style={{ fontSize: "clamp(40px,5vw,64px)" }}
+              style={{ fontSize: "clamp(23px, 5vw, 64px)" }}
             >
               On vous parle votre langue.
             </h2>
@@ -533,7 +533,7 @@ export default function Home() {
               <Overline>Notre savoir-faire</Overline>
               <h2
                 className="font-headline font-black text-primary mt-4 leading-none tracking-[-0.02em]"
-                style={{ fontSize: "clamp(36px,4.5vw,56px)" }}
+                style={{ fontSize: "clamp(21px, 4.5vw, 56px)" }}
               >
                 Quatre métiers,<br />
                 une obsession&nbsp;: livrer.
@@ -653,7 +653,7 @@ export default function Home() {
           </div>
           <h2
             className="font-headline font-black text-white leading-tight tracking-[-0.02em]"
-            style={{ fontSize: "clamp(28px,4vw,48px)" }}
+            style={{ fontSize: "clamp(18px, 4vw, 48px)" }}
           >
             Nos partenaires &amp; clients
           </h2>
@@ -718,7 +718,7 @@ export default function Home() {
           <Overline light>Le terrain parle pour nous</Overline>
           <h2
             className="font-headline font-black text-white mt-4 leading-none tracking-[-0.02em]"
-            style={{ fontSize: "clamp(32px,4vw,48px)" }}
+            style={{ fontSize: "clamp(19px, 4vw, 48px)" }}
           >
             +15 chantiers en image.
           </h2>

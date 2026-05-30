@@ -90,7 +90,7 @@ export default function InfrastructuresRurales() {
               </span>
             </motion.div>
 
-            <div style={{ fontSize: "clamp(48px,7vw,92px)" }}>
+            <div style={{ fontSize: "clamp(28px, 7vw, 92px)" }}>
               <TextReveal
                 text="Préparation &"
                 as="h1"

@@ -77,7 +77,7 @@ export default function PourquoiNous() {
             >
               <p
                 className="font-headline font-black text-white leading-none"
-                style={{ fontSize: "clamp(3rem, 5vw, 5rem)" }}
+                style={{ fontSize: "clamp(28px, 5vw, 5rem)" }}
               >
                 <AnimatedCounter end={s.val} suffix={s.suffix} />
               </p>

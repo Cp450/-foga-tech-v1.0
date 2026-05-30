@@ -380,7 +380,7 @@ export default function DevisLocationForm({ prefillMachines = [] }) {
 
         <h2
           className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-4"
-          style={{ fontSize: 'clamp(1.8rem, 4vw, 2.8rem)' }}
+          style={{ fontSize: 'clamp(18px, 4vw, 2.8rem)' }}
         >
           Demande envoyée, {contact.nom.split(' ')[0]}&nbsp;!
         </h2>
@@ -470,7 +470,7 @@ export default function DevisLocationForm({ prefillMachines = [] }) {
           <section aria-label="Sélection des machines">
             <h2
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-3"
-              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)' }}
+              style={{ fontSize: 'clamp(18px, 4vw, 2.4rem)' }}
             >
               Quelles machines vous faut-il&nbsp;?
             </h2>
@@ -511,7 +511,7 @@ export default function DevisLocationForm({ prefillMachines = [] }) {
           <section aria-label="Informations chantier">
             <h2
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-3"
-              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)' }}
+              style={{ fontSize: 'clamp(18px, 4vw, 2.4rem)' }}
             >
               Votre chantier
             </h2>
@@ -613,7 +613,7 @@ export default function DevisLocationForm({ prefillMachines = [] }) {
           <section aria-label="Vos coordonnées">
             <h2
               className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-3"
-              style={{ fontSize: 'clamp(1.6rem, 4vw, 2.4rem)' }}
+              style={{ fontSize: 'clamp(18px, 4vw, 2.4rem)' }}
             >
               Vos coordonnées
             </h2>

@@ -43,7 +43,7 @@ export default function CtaFinal() {
           </motion.div>
 
           {/* Headline */}
-          <div style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }} className="mb-8">
+          <div style={{ fontSize: "clamp(23px, 6vw, 5rem)" }} className="mb-8">
             <TextReveal
               text="Construisons"
               as="h2"

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { api } from '../lib/api'
 
 /* Mock dernière édition — remplacer par fetch Supabase quand dispo */
@@ -61,7 +61,7 @@ export default function NewsletterCapture() {
           {/* Titre */}
           <h2
             className="font-headline font-black text-white leading-[0.92] tracking-[-0.03em] mb-6"
-            style={{ fontSize: 'clamp(2rem, 4vw, 3rem)' }}
+            style={{ fontSize: 'clamp(19px, 4vw, 3rem)' }}
           >
             Le terrain,<br />
             <span className="text-secondary-container">en direct.</span>

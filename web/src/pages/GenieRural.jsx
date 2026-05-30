@@ -141,7 +141,7 @@ export default function GenieRural() {
               </span>
             </motion.div>
 
-            <div style={{ fontSize: "clamp(52px,7.5vw,100px)" }}>
+            <div style={{ fontSize: "clamp(30px, 7.5vw, 100px)" }}>
               <TextReveal
                 text="Bâtir le futur rural."
                 as="h1"
@@ -185,7 +185,7 @@ export default function GenieRural() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 border-t border-white/10 pt-8 mt-12">
             {HERO_STATS.map((s) => (
               <div key={s.label}>
-                <p className="font-headline font-black text-white leading-none" style={{ fontSize: 'clamp(1.6rem, 2.8vw, 2.4rem)' }}>
+                <p className="font-headline font-black text-white leading-none" style={{ fontSize: 'clamp(18px, 2.8vw, 2.4rem)' }}>
                   {s.val}
                 </p>
                 <p className="text-white/40 font-body text-[11px] mt-2 leading-tight">{s.label}</p>
