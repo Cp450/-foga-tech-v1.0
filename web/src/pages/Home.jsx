@@ -14,7 +14,7 @@ const SEGMENTS = [
     icon: "home",
     headline: "Construire votre maison",
     promise: "Devis maison clé en main · planning garanti",
-    bullets: ["Villa R+0 / R+1 / R+2", "Terrain ou pas terrain", "Financement modulable"],
+    bullets: ["Villa R+0 / R+1 / R+2,3,4,5 etc.", "Avec ou sans terrain", "Financement modulable"],
     typical: "Maison clé en main · Planning et qualité garantis",
     devisLink: "/devis-particulier",
     image: "/segment-particulier.webp",
@@ -57,7 +57,7 @@ const SERVICES = [
   {
     num: "02",
     title: "Bâtiment tertiaire & résidentiel",
-    chantiers: 64,
+    chantiers: "+15",
     to: "/genie-civil#construction",
     kind: "light",
     image: "/batiment-tertiaire.webp",
@@ -74,6 +74,7 @@ const SERVICES = [
     num: "04",
     title: "Location d'engins",
     chantiers: 65,
+    unit: "engins",
     to: "/location",
     kind: "navy",
     image: "/location-engins.webp",
@@ -582,7 +583,7 @@ export default function Home() {
                       {s.chantiers}
                     </div>
                     <div className="font-headline font-black text-[9px] uppercase tracking-[0.2em] opacity-70 mt-0.5">
-                      chantiers
+                      {s.unit || "chantiers"}
                     </div>
                   </div>
                 </div>
