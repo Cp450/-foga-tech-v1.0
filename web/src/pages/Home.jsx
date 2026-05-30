@@ -1,7 +1,6 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
-import StickyCTABar from "../components/StickyCTABar";
 import PartenaireModal from "../components/PartenaireModal";
 import { PARTENAIRES } from "../data/partenaires";
 import { cn } from "../lib/cn";
@@ -770,8 +769,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <StickyCTABar />
     </>
   );
 }
