@@ -209,6 +209,26 @@ router.post('/location', async (req, res) => {
     statut: 'Nouveau',
   })
 
+  // n8n — qualification IA + pipeline enrichi (en parallèle, non-bloquant, dormant si var absente)
+  if (process.env.N8N_DEVIS_WEBHOOK) {
+    fetch(process.env.N8N_DEVIS_WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'location',
+        nom,
+        telephone,
+        email: email || null,
+        lieu_chantier: lieuChantier,
+        machines,
+        date_debut: dateDebut,
+        date_fin: dateFin,
+        message: message || null,
+        statut: 'Nouveau',
+      }),
+    }).catch(err => console.error('[devis/location] n8n webhook error (non-bloquant):', err.message))
+  }
+
   if (!mailOk) {
     return res.status(500).json({
       success: false,
