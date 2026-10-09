@@ -120,10 +120,23 @@ Sécurité (manuel §17) : authentification renforcée pour les comptes sensible
 
 Tampon dateur « Reçu le », tampon « Original / Copie conforme », registre papier de secours (numéroté et paraphé), scanner de bureau ou application de scan, bannettes « À traiter / Transmis / À archiver », classeurs par client et par chantier, étiquettes, enveloppes et bordereaux d'envoi, cahier de décharge pour les coursiers, rangement fermé à clé pour les originaux (contrats, PV, cautions).
 
-## 9. Points à confirmer
+## 9. Boîtes surveillées et conservation (confirmé)
 
-1. Boîtes mail de l'entreprise et des dirigeants : Gmail, Outlook ou Hostinger (le dépôt utilise le SMTP Hostinger pour `contact@foga-tech.com`) ?
-2. Accusés de réception : brouillon validé (recommandé) ou envoi automatique ?
-3. NocoDB et n8n sur le VPS : confirmés ?
-4. Qui est dirigeant référent pour chaque secteur 1 à 8, et par quel canal sont-ils alertés (WhatsApp, mail, les deux) ?
-5. Durée de conservation des courriers physiques et numériques à appliquer (à valider avec la comptabilité et le conseil juridique).
+| Boîte | Titulaire |
+|---|---|
+| contact@foga-tech.com | Secrétariat |
+| cyril.nsaha@foga-tech.com | Directeur général |
+| prince.ngoulou@foga-tech.com | Directeur général adjoint |
+| fogat.technology@gmail.com | Directeur général |
+| ngoulounoe5@gmail.com | Directeur général adjoint |
+
+Conservation : 3 ans (durée légale indiquée par la Direction) ; point de départ à confirmer ; ne pas détruire un dossier de chantier ou de garantie sans accord écrit.
+
+Conséquence technique : le domaine `foga-tech.com` (Hostinger, IMAP/SMTP) et les boîtes Gmail (API Google) sont deux connecteurs différents dans n8n ; le workflow W1 est donc doublé, avec le même enregistrement en aval.
+
+## 10. Points encore à confirmer
+
+1. Accusés de réception : brouillon validé par le secrétariat (recommandé) ou envoi automatique ?
+2. NocoDB et n8n sur le VPS : confirmés ?
+3. Canal d'alerte des dirigeants : WhatsApp, mail, ou les deux ? Et dirigeant référent pour chacun des 8 secteurs ?
+4. Le directeur général a deux adresses (`fogat.technology@gmail.com` et `cyril.nsaha@foga-tech.com`), de même pour l'adjoint : s'agit-il des mêmes personnes ?

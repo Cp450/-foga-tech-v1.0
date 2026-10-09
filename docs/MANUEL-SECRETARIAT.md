@@ -96,7 +96,17 @@ Objectif : qu'aucun courrier ne soit perdu, lu par la mauvaise personne ou trait
 
 ## 5. Procédure P2 — Mails de l'entreprise et des dirigeants
 
-Boîtes surveillées : `contact@foga-tech.com` et les boîtes des dirigeants, selon la liste à jour tenue par la Direction. Les dirigeants gardent la maîtrise de leur boîte ; le secrétariat n'y accède que pour ce qui est convenu par écrit.
+Les cinq boîtes surveillées :
+
+| Boîte | Titulaire | Rôle |
+|---|---|---|
+| contact@foga-tech.com | Secrétariat | Boîte de l'entreprise, surveillée chaque jour par le secrétariat |
+| cyril.nsaha@foga-tech.com | Directeur général | Boîte professionnelle |
+| prince.ngoulou@foga-tech.com | Directeur général adjoint | Boîte professionnelle |
+| fogat.technology@gmail.com | Directeur général | Boîte Gmail |
+| ngoulounoe5@gmail.com | Directeur général adjoint | Boîte Gmail |
+
+Les dirigeants gardent la maîtrise de leur boîte ; le secrétariat n'y accède que pour ce qui est convenu par écrit. Les mails d'intérêt reçus sur les boîtes Gmail des dirigeants sont transférés ou signalés au secrétariat pour enregistrement, afin que le registre soit unique. Les dirigeants n'utilisent plus d'adresse personnelle pour les échanges avec les clients : tout passe par une adresse `@foga-tech.com`.
 
 1. Consulter les boîtes à heures fixes : au début de la journée, avant la pause déjeuner, en fin d'après-midi. Hors de ces heures, le workflow automatique enregistre et alerte.
 2. Pour chaque mail d'intérêt : vérifier l'expéditeur, l'objet, les pièces jointes.
@@ -183,7 +193,11 @@ Si le responsable est injoignable : joindre le suppléant, puis la Direction. On
 - Mouvement de dossier : toute sortie d'un original est notée (date, nom, motif) et signée ; retour contrôlé.
 
 ### 10.3 Durées de conservation
-Les durées à appliquer sont à valider avec la comptabilité et un conseil juridique pour le Congo. En attendant : ne rien détruire, archiver l'ensemble.
+La durée légale de conservation retenue est de **3 ans**. Elle s'applique aux courriers et mails du registre, papier et numérique. Règles d'application :
+- Le point de départ est la date de clôture du dossier ; à défaut, la date du document. À confirmer par la Direction.
+- Les dossiers de chantier, contrats, PV de réception et garanties peuvent exiger une conservation plus longue pendant la durée de la garantie décennale mentionnée dans vos procédures : ne pas les détruire sans accord écrit de la Direction.
+- Aucune destruction sans **procès-verbal de destruction** signé par la Direction (liste des numéros détruits, date, mode de destruction).
+- Dans le registre, les lignes ne sont jamais supprimées, même après destruction des pièces.
 
 ## 11. Procédure P8 — Relances et échéances
 
