@@ -1,6 +1,6 @@
 # Foga-Tech International — Acteurs, cas d'utilisation et user stories
 
-Version 1.0 — octobre 2026. Document d'expression de besoins, préalable à la rédaction de toutes les procédures. Il est tiré uniquement de vos documents : Manuel des procédures (22/08/2026), Manuel des procédures sectorielles, Formulaires de prise en charge (FT-ACC et secteurs 2 à 8), Recueil des formulaires opérationnels avec traçabilité (FT-PRO à FT-REG) et Recueil des modèles par secteur.
+Version 1.1 — 10 octobre 2026 (v1.0 complétée de 41 stories issues de l'analyse des manques : sections 6.9 à 6.14, procédures PR-32 à PR-37). Document d'expression de besoins, préalable à la rédaction de toutes les procédures. Il est tiré uniquement de vos documents : Manuel des procédures (22/08/2026), Manuel des procédures sectorielles, Formulaires de prise en charge (FT-ACC et secteurs 2 à 8), Recueil des formulaires opérationnels avec traçabilité (FT-PRO à FT-REG) et Recueil des modèles par secteur.
 
 ## 1. Objet et méthode
 
@@ -33,6 +33,9 @@ Conventions :
 | Donneur d'ordre / maître d'ouvrage public ou majeur du BTP | Appel d'offres, marché, ordre de service | MS secteur 3 |
 | Fournisseur, sous-traitant, transporteur | Matériaux, équipements, prestations | MP |
 | Administration (mairie, ministère, impôts, organismes sociaux) | Permis, récépissés, courriers officiels | MS secteur 1 |
+| Comptable | Inventaire des pièces, saisie des écritures avec identifiant de pièce, rapprochement bancaire | Programme d'exécution |
+| Responsable de validation | Règles de classement, contrôle d'échantillon, contrôles inverses | Programme d'exécution |
+| Aide au tri | Numérisation et tri des pièces aux semaines chargées | Programme d'exécution |
 | Responsable informatique / administrateur du système | Comptes, droits, sauvegardes, sécurité | MP §17 |
 | Système (registre NocoDB, workflows n8n) | Numérotation, alertes, relances, contrôles automatiques | Architecture proposée |
 
@@ -253,6 +256,77 @@ Les autres cas sectoriels du §3.3 suivent le même format. Ils seront détaill�
 | US-SYS-06 | En tant qu'utilisateur terrain, je veux travailler même sans connexion, afin de ne pas être bloqué sur chantier | Saisie hors connexion et synchronisation ultérieure (phase 4 du manuel) | C — MP §15 |
 | US-SYS-07 | En tant que Direction, je veux que le site web alimente directement le registre, afin que toute demande en ligne soit tracée | Formulaires du site (devis, contact) envoyés au workflow ; fiche FT-ACC créée | M — Dépôt existant |
 
+### 6.9 Archivage comptable (ajouté le 10 octobre 2026)
+Stories du chantier d'archivage des pièces comptables, échéance 31 octobre 2026. Acteurs : comptable, responsable de validation, aide au tri, Direction, développeur.
+| ID | Story | Critères d'acceptation | Priorité |
+|---|---|---|---|
+| US-ARC-01 | En tant que comptable, je veux enregistrer une pièce avec un identifiant unique et ses informations clés, afin de la retrouver depuis une écriture | Identifiant FT-PC attribué automatiquement ; champs du §5.6 du programme obligatoires ; fichier joint | M |
+| US-ARC-02 | En tant que comptable, je veux citer la pièce dans l'écriture au moment de la saisie, afin de ne jamais saisir un chiffre sans origine | Champ `piece_id` obligatoire ou motif « pièce manquante » obligatoire | M |
+| US-ARC-03 | En tant que responsable de validation, je veux ouvrir la pièce depuis l'écriture et l'écriture depuis la pièce, afin de contrôler en deux clics | Lien dans les deux sens ; ouverture en moins de 2 secondes | M |
+| US-ARC-04 | En tant que responsable de validation, je veux la liste des écritures sans pièce et des pièces sans écriture, afin de corriger les écarts | Deux rapports, filtrables par exercice, exportables | M |
+| US-ARC-05 | En tant que comptable, je veux déclarer une pièce manquante avec son motif et son justificatif de remplacement, afin de ne pas bloquer la saisie | Statut « manquante », motif, attestation signée par la Direction jointe | M |
+| US-ARC-06 | En tant qu'aide au tri, je veux déposer un lot de scans et les voir apparaître dans la file « À trier », afin d'enchaîner sans manipulation | Dépôt par dossier ; détection des doublons par empreinte ; compteur du lot | M |
+| US-ARC-07 | En tant que comptable, je veux rapprocher chaque compte bancaire avec son relevé, afin de prouver la trésorerie | État de rapprochement par compte et par mois ; écarts listés | M |
+| US-ARC-08 | En tant que Direction, je veux retrouver depuis un chiffre du bilan la liste des pièces qui le composent, afin de répondre à un contrôle | Navigation état financier → compte → écritures → pièces | M |
+| US-ARC-09 | En tant que développeur, je veux que chaque PDF produit par l'ERP soit archivé et indexé automatiquement, afin que les ventes soient justifiées comme les achats | Facture, situation, bon : identifiant de pièce et fichier archivé à la génération | M |
+| US-ARC-10 | En tant que Direction, je veux connaître la date de fin de conservation de chaque pièce et être prévenue avant, afin de ne rien détruire trop tôt ni garder inutilement | Date calculée selon la règle confirmée ; aucune suppression sans procès-verbal | S |
+| US-ARC-11 | En tant que responsable de validation, je veux un tableau de bord du chantier d'archivage (collectées, classées, saisies, contrôlées, manquantes), afin de suivre l'avancement | Mis à jour chaque jour ; comparé au plan | S |
+
+
+### 6.10 Secrétariat : fonctions complémentaires (ajouté le 10 octobre 2026)
+| ID | Story | Priorité |
+|---|---|---|
+| US-SEC-13 | En tant que secrétariat, je veux tenir l'agenda des dirigeants et les demandes de rendez-vous, afin de tracer qui a demandé quoi et quand | S |
+| US-SEC-14 | En tant que secrétariat, je veux un registre des visiteurs et des livraisons au siège, afin de savoir qui est entré et ce qui a été reçu | S |
+| US-SEC-15 | En tant que secrétariat, je veux un circuit de signature (parapheur) pour les courriers sortants, afin de savoir où en est chaque document à signer | M |
+| US-SEC-16 | En tant que Direction, je veux désigner un délégataire de signature pendant mes absences, afin que le courrier ne s'arrête pas | M |
+| US-SEC-17 | En tant que secrétariat, je veux enregistrer et diffuser les notes de service et le courrier interne, afin que les décisions internes soient tracées comme le courrier externe | S |
+| US-SEC-18 | En tant que secrétariat, je veux un niveau de confidentialité sur chaque courrier (ordinaire, interne, confidentiel), afin de limiter qui peut le voir | M |
+| US-SEC-19 | En tant que secrétariat, je veux suivre le stock de fournitures et déclencher le réapprovisionnement, afin de ne jamais manquer de tampons, d'encre ou d'enveloppes | A |
+| US-SEC-20 | En tant que secrétariat, je veux imprimer une étiquette avec le numéro et un code QR à coller sur le papier, afin de retrouver la ligne du registre depuis l'original | S |
+| US-SEC-21 | En tant que secrétariat, je veux enregistrer la sortie et le retour d'un original prêté, afin de savoir où est chaque dossier | S |
+| US-SEC-22 | En tant que secrétariat, je veux des indicateurs propres au courrier (délai moyen de traitement, taux d'accusés dans les délais, courriers en retard par responsable), afin d'alimenter le point hebdomadaire | S |
+
+
+### 6.11 Obligations à échéance propres au BTP (ajouté le 10 octobre 2026)
+| ID | Story | Priorité |
+|---|---|---|
+| US-ECH-01 | En tant que Direction, je veux un dossier administratif d'entreprise à jour (RCCM, attestations fiscale et sociale, agréments, assurances) avec alerte avant expiration, afin de répondre à tout appel d'offres sans courir | M |
+| US-ECH-02 | En tant que finance, je veux suivre chaque caution bancaire (soumission, avance, bonne exécution, retenue de garantie) avec son montant, son échéance et sa mainlevée, afin de récupérer l'argent immobilisé | M |
+| US-ECH-03 | En tant que Direction, je veux suivre les assurances de l'entreprise, des chantiers, des engins et des véhicules avec alerte avant échéance, afin de ne jamais être découvert | M |
+| US-ECH-04 | En tant que Direction, je veux suivre les permis, autorisations et contrats récurrents (bail, abonnements) avec leurs échéances, afin d'anticiper les renouvellements | S |
+| US-ECH-05 | En tant que chargé d'affaires, je veux une veille des appels d'offres avec la date limite et la liste des pièces à fournir, afin de décider vite si l'on répond | S |
+
+
+### 6.12 Règles de la spécification FTMA (ajouté le 10 octobre 2026)
+| ID | Story | Source | Priorité |
+|---|---|---|---|
+| US-PAY-01 | En tant que Direction, je veux que le système bloque la visite, la production et la livraison tant que la tranche de paiement correspondante n'est pas payée, sauf dérogation tracée, afin de protéger la trésorerie | FTMA §9.4 | M |
+| US-PAY-02 | En tant que finance, je veux un échéancier de tranches généré à l'ouverture de chaque dossier selon le secteur, modifiable par contrat, afin de ne pas le recalculer à la main | FTMA §9.4 | M |
+| US-ITE-01 | En tant que chargé d'affaires, je veux compter les itérations d'esquisse, de devis ou de dimensionnement avec les points modifiés demandés, afin de savoir quand on sort du forfait | FTMA §9.5 | M |
+| US-ITE-02 | En tant que Direction, je veux qu'une modification substantielle après validation bascule en avenant et non en itération gratuite, afin de ne pas refaire du travail non facturé | FTMA §9.5 | M |
+| US-ETU-01 | En tant que responsable technique, je veux que le refus d'une étude recommandée par le client soit acté par une validation explicite signée, afin de dégager la responsabilité de l'entreprise | FTMA §5.7 | M |
+| US-ETU-02 | En tant que responsable technique, je veux la matrice d'études de chaque secteur (obligatoire, recommandée) proposée automatiquement selon la situation du terrain, afin de ne rien oublier | FTMA §5.7 | S |
+
+
+### 6.13 Passerelles entre le secrétariat et l'ERP (ajouté le 10 octobre 2026)
+| ID | Story | Priorité |
+|---|---|---|
+| US-PONT-01 | En tant que secrétariat, je veux qu'une facture fournisseur reçue par courrier ou mail crée une pièce dans l'archive et une facture à rapprocher dans le module Achats, afin de ne pas la saisir deux fois | M |
+| US-PONT-02 | En tant que conducteur de travaux, je veux voir dans la fiche chantier de l'ERP les courriers du registre rattachés au chantier, afin d'avoir tout au même endroit | M |
+| US-PONT-03 | En tant que comptable, je veux qu'un encaissement signalé par mail (avis de virement) soit proposé au rapprochement dans l'ERP, afin d'accélérer le lettrage | S |
+| US-PONT-04 | En tant que Direction, je veux un seul annuaire des tiers (clients, fournisseurs, sous-traitants) partagé entre le registre, le site web et l'ERP, afin d'éviter les doublons | M |
+
+
+### 6.14 Système et fiabilité, complément (ajouté le 10 octobre 2026)
+| ID | Story | Priorité |
+|---|---|---|
+| US-SYS-08 | En tant que développeur, je veux être alerté quand un workflow échoue et que le mail concerné soit mis en file de reprise, afin qu'aucun mail ne soit perdu silencieusement | M |
+| US-SYS-09 | En tant que secrétariat, je veux annoter les propositions des agents (juste, faux, corrigé), afin de constituer le jeu de 100 cas qui mesure leur fiabilité | M |
+| US-SYS-10 | En tant que Direction, je veux un environnement de test où l'on essaie les changements avant la production, afin de ne pas casser le système en service | M |
+| US-SYS-11 | En tant que Direction, je veux exporter l'ensemble des données en formats ouverts, afin de ne pas dépendre d'un outil | S |
+| US-SYS-12 | En tant que responsable informatique, je veux un journal des accès aux documents confidentiels, afin de savoir qui a consulté quoi | S |
+
 ## 7. Exigences transverses
 
 | Domaine | Exigence | Source |
@@ -268,7 +342,7 @@ Les autres cas sectoriels du §3.3 suivent le même format. Ils seront détaill�
 
 ## 8. Matrice des procédures à rédiger
 
-Cette matrice relie les besoins ci-dessus aux procédures à écrire. À valider avant rédaction.
+Mise à jour du 10 octobre 2026 : six procédures ajoutées (PR-32 à PR-37) à la suite de l'analyse des manques. Cette matrice relie les besoins ci-dessus aux procédures à écrire. À valider avant rédaction.
 
 | Réf. | Procédure à rédiger | Cas d'utilisation | User stories | État |
 |---|---|---|---|---|
@@ -303,6 +377,12 @@ Cette matrice relie les besoins ci-dessus aux procédures à écrire. À valider
 | PR-29 | Secteur 7 — solutions durables | UC-7A à 7D | US-S7-01, 02 | À rédiger |
 | PR-30 | Pilotage et tableau de bord | UC-C16 | US-DIR-04 | À rédiger |
 | PR-31 | Sécurité des accès, sauvegardes, droits | — | US-SYS-02 à 04 | À rédiger |
+| PR-32 | Archivage des pièces comptables (collecte, tri, classement, index, lien ERP) | — | US-ARC-01 à 11 | À rédiger ; chantier du 31 octobre |
+| PR-33 | Agenda, visiteurs, parapheur, délégation de signature, notes de service, confidentialité | — | US-SEC-13 à 22 | À rédiger |
+| PR-34 | Obligations à échéance : dossier administratif, cautions, assurances, permis, veille des appels d'offres | — | US-ECH-01 à 05 | À rédiger |
+| PR-35 | Tranches de paiement, itérations et avenants, refus d'étude recommandée | — | US-PAY-01, 02, US-ITE-01, 02, US-ETU-01, 02 | À rédiger ; règles de FTMA |
+| PR-36 | Passerelles secrétariat–ERP et annuaire unique des tiers | — | US-PONT-01 à 04 | À rédiger |
+| PR-37 | Exploitation : environnement de test, alertes de workflows, export, journal des accès | — | US-SYS-08 à 12 | À rédiger |
 
 ## 9. Points à valider avant de rédiger les procédures
 
