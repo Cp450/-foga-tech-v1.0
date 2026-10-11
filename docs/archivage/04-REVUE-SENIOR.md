@@ -432,3 +432,208 @@ Liste fusionnée avec les questions de l'architecte (`01-CONCEPTION.md` §10, `0
 | D14 | Texte de l'attestation interne ; choix de l'outil de sonde externe ; confirmation que l'option IA reste désactivée ; durée de conservation (J12) | Direction | avant J13 ; J12 | Q23, ADR-06 |
 | D15 | Recette : tolérance de l'échantillon (30 sur 30), conditions de mesure des 2 secondes, recherche insensible aux accents, marquage des identifiants de test, format du plan d'avancement | Responsable de validation | mer 14 | RS-24, RS-26, RS-27, Q25 à Q28 |
 | D16 | Méthode de reprise des écritures historiques (J04b) et source par exercice | Comptable | mar 13 | RS-13, Q32 |
+
+## 7. Vérification de la version 0.2
+
+Relecture du 11 octobre 2026 de `01-CONCEPTION.md` v0.2 et de `02-BACKLOG.md` v0.2. J'ai vérifié chaque correction dans le texte. Le tableau « Traitement des revues » de l'auteur n'a pas été pris pour preuve. Statuts possibles : **Résolu**, **Partiellement**, **Non résolu**, **Régression**. « Sous réserve de Dnn » signifie que la correction est présente mais suppose l'option par défaut du §12.
+
+### 7.1 Constats bloquants et majeurs de la v0.1
+
+| Constat | Statut | Où et pourquoi |
+|---|---|---|
+| RS-01 Compteur après restauration | **Partiellement** | ADR-03, §5.2 H3, §8.7 : le registre hors base, le recalage, E05 contre le registre et le test (j) d'ARC-007 sont présents et justes sur le fond. Deux réserves subsistent ; elles sont décrites en NV-04. |
+| RS-02 Charge de S42 | **Partiellement** | Backlog §5 : la charge est présentée honnêtement, mais elle reste de 63,5 h en 5 jours (scénario A) ou de 76,5 h en 6,5 jours (scénario B). Aucun renfort n'est nommé ni daté. Le point reste ouvert en D2. |
+| RS-03 Go du 16 et J09a | **Partiellement** | Backlog §5 : deux scénarios. Dans le scénario A, J09a est décalé au 19–20 mais J09b (19–20, qui dépend de J09a) ne l'est pas. ARC-022 (pièces manquantes), nécessaire au critère de J09a, est rangée dans « reste avant la remise » (J10). Le 14 octobre est surchargé (voir §7.3). |
+| RS-04 W08 | **Résolu** | §8.2, §5.1 : `/piece/<id>` est authentifié avant tout traitement. La réponse 401 est identique pour tous, sans `Location`. La réponse 404 est générique. Le chemin n'est jamais exposé et le journal ne contient que l'URI. |
+| RS-05 Justification d'une écriture | **Résolu** (sous réserve de D5) | §5.3 (définition, E01, E02), §7.2 : EW-3 tombe en E01. |
+| RS-06 Journal d'audit | **Partiellement** | §4.4, §4.5, §8.11 : refus des fonctions consignés dans `refus` ; refus des déclencheurs tracés dans le journal du serveur, mais sous le compte technique ; `TRUNCATE` révoqué et protégé par déclencheur ; `arch_owner` en `NOLOGIN` ; chaînage et ancre de nuit. L'auteur nominatif reste en D7. Le chaînage introduit un nouveau défaut (NV-03). |
+| RS-07 Statut mélangé | **Résolu** | §4.3 et §4.1 (`v_pieces`) : seul le cycle de vie est stocké ; « saisie » et « contrôlée » sont calculées ; E03 porte sur les pièces contrôlées ; une pièce `Manquante` citée reste `Manquante`. Conséquence pour la recette : la donnée PW-1 (pièce « Saisie » sans écriture) devient impossible par construction, et REC-064 doit être adapté (§7.4). |
+| RS-08 Inventaire | **Résolu** | §4.2 `inventaire`, §5.3 E11. |
+| RS-09 Pièce manquante | **Résolu** | §4.2 `declarations_manquantes`, `demandes` ; §4.4 `declarer_piece_manquante` (une transaction, rejouable) et `rattacher_justificatif` (statut `Fusionnee`, unicité de l'empreinte « hors `Fusionnee` », aucune empreinte réécrite). Il reste des cas limites mineurs (NV-07). |
+| RS-10 US-ARC-09 | **Résolu sous réserve de D6** | §7.1 F4 : un repli manuel est prévu. |
+| RS-11 Base dédiée | **Résolu sous réserve de D1** | §1 Écart 2, ADR-01 ; la migration des métadonnées est reportée (ARC-048). |
+| RS-12 Reprise de W01 | **Partiellement** | §5.1 W01, §4.4 `enregistrer_fichier` : lot `En_ingestion` repris après 15 minutes, fichier déjà traité sauté, doublon compté seulement s'il vient d'un autre lot. Le redépôt d'un lot sous le même code n'est plus signalé (NV-06). Le nouveau stockage par empreinte crée un défaut bloquant (NV-01). |
+| RS-13 W05 coupé en deux | **Résolu** | §5.1 W05 : une seule transaction ; l'empreinte n'est marquée importée qu'au statut `Importe` ; table `sources_exercice`. |
+| RS-14 Sauvegarde | **Résolu** | §8.6 : noms uniques, précondition « n'existe pas », copie 3 incrémentale, `entree/` et `registre_ids/` inclus, fichiers puis dump, chiffrement par clé publique. Réserve mineure : NV-11. |
+| RS-15 Droits trop larges | **Résolu** | §4.5 : matrice table par table ; `id_piece` et `compteurs` écrits seulement par fonction ; aucun rôle de connexion propriétaire. Réserve mineure : NV-10. |
+| RS-16 Option B | **Résolu sous réserve de D2** | §4.4 (contrôle de `piece_id_saisi`), §5.3 E12, §7.4 : les limites REC-044 et REC-045 sont dites. |
+| RS-17 Rapprochement | **Résolu sous réserve de D8** | §4.2 : solde comptable calculé, `Releve_manquant`, `Rapproche` conditionné, état détaillé joint. |
+| RS-18 Quatre yeux du contrôle | **Partiellement** | §4.2 `controles_pieces`, §7.2 `saisi_par`. `saisi_par` est un identifiant de l'ERP ou d'Excel (`cpt1`), alors que `controle_par` est un compte NocoDB : aucune table de correspondance n'existe, donc la comparaison ne peut pas se faire. En source `EXCEL`, la colonne risque d'être vide. Il faut une table `correspondance_personnes` et rendre `saisi_par` obligatoire pour l'exercice contrôlé. |
+| RS-19 Correction sans version | **Résolu sous réserve de D11** | §4.3 (corrections), §4.2 `pieces_versions`, §4.6 `_versions/` : l'objet et l'empreinte ne changent jamais, seul le lien est déplacé. Ce point est cohérent avec le stockage par empreinte. |
+| RS-20 Vue de balance | **Résolu** | §5.3 `v_balance`. |
+| RS-21 Avoirs et pièces sans montant | **Résolu sous réserve de D4** | §4.1 `sens`, `sans_montant` ; §4.7. |
+| RS-22 États sans issue | **Résolu** | `Classement_en_cours` est supprimé (la validation est synchrone) ; T5 (`Rejetee` → `A_trier`) existe. La révision de la machine d'états introduit cependant une régression sur T4 (NV-02). |
+| RS-23 Déclarations en double | **Résolu** | §4.4 : refus sauf `confirme_doublon`. |
+| RS-24 Plan absent | **Résolu** | §4.2 `plan_avancement`. |
+| RS-25 Modifications concurrentes | **Partiellement** | §4.1 `pris_par` : c'est une parade déclarative ; REC-039 est requalifié en D15. Acceptable si D15 l'acte. |
+| RS-26 Échantillon | **Résolu sous réserve de D15** | §5.3 `v_echantillon`. |
+| RS-27 Identifiant de test | **Résolu** | §4.4, §8.9. Réserve mineure : NV-10. |
+
+Décompte des 27 constats bloquants et majeurs : **20 résolus**, dont 9 sous réserve d'une décision ; **7 partiellement résolus** (RS-01, 02, 03, 06, 12, 18, 25) ; **0 non résolu** ; **0 régression** au niveau des constats eux-mêmes. Les régressions apparaissent comme nouveaux défauts (§7.2).
+
+Constats mineurs :
+- RS-29, RS-30, RS-31, RS-32 et RS-33 sont résolus.
+- RS-34 est en attente de D3.
+- RS-35 est reporté, ce qui est conforme à la proposition.
+- RS-28 est partiellement résolu : les dates de la v0.1 sont corrigées, mais de nouvelles incohérences de calendrier apparaissent (§7.3).
+
+### 7.2 Nouveaux défauts et régressions de la v0.2
+
+#### NV-01 — Un objet écrit à moitié peut être scellé pour toujours sous le nom d'une empreinte qu'il n'a pas
+- **Gravité** : Bloquant (altération d'une pièce ; REC-106).
+- **Emplacement** : §5.1 W01 étape 3 (« copie vers `objets/<sha256>.pdf` (si absent) ») ; §5.2 H1 ; ADR-02.
+- **Preuve** : W01 écrit directement le fichier final. Une coupure de courant pendant la copie laisse dans `objets/` un fichier tronqué qui porte déjà le nom de la bonne empreinte. Au rejeu, la règle « si absent » saute la copie et appelle `enregistrer_fichier` : la pièce pointe sur le fichier tronqué. De plus, H1 tourne chaque minute et peut passer en `root:root 0444` un fichier en cours d'écriture. Dans les deux cas, n8n ne peut plus corriger le fichier (c'est le but du scellement), et seule une intervention de root le peut. H5 ne le verra que la nuit suivante.
+- **Correction** :
+  - W01 écrit dans `objets/.tmp/<sha256>.<exécution>`, vérifie l'empreinte, puis renomme le fichier, ce qui est atomique sur le même système de fichiers.
+  - La règle « si absent » devient « si absent, ou présent avec une empreinte différente et non scellé ».
+  - H1 ne scelle que les fichiers hors `.tmp/` dont l'empreinte recalculée égale le nom ; sinon il les met en quarantaine et écrit une ligne `resultats_integrite`.
+  - Test à ajouter à ARC-011 et ARC-043 : coupure pendant la copie d'un fichier de 20 Mo, puis rejeu.
+
+#### NV-02 — T4 (rejet depuis `A_trier`) est devenu impossible : une pièce illisible ne peut ni être triée ni être rejetée
+- **Gravité** : Majeur (REC-034 ; REC-176 bloquant pour P14 ; PDF qui contient plusieurs pièces).
+- **Emplacement** : §4.3 T4 (« depuis `A_trier` ou `A_valider` ») contre §4.4 (« colonnes de décision seulement à `A_valider` ») et T2 (date, type, tiers et montant obligatoires).
+- **Preuve** :
+  - Pour rejeter, il faut poser `decision = Rejeter`, ce qui n'est permis qu'à `A_valider`.
+  - Pour passer à `A_valider`, il faut renseigner date, tiers et montant, que l'on ne peut pas lire sur un scan illisible.
+  - La pièce reste donc en `A_trier` sans issue, et E10 la signale indéfiniment.
+- **Correction** : autoriser à `A_trier` la décision `Rejeter` (et elle seule), avec un motif obligatoire, posée par le comptable ou le responsable de validation. Comme à `A_valider`, le contrôle des quatre yeux s'applique au rejet. Autre possibilité : utiliser une demande `Rejeter` dans `demandes`.
+
+#### NV-03 — Le chaînage du journal sérialise toute la base et crée un risque d'interblocage avec l'import
+- **Gravité** : Majeur.
+- **Emplacement** : §4.4, dernier tiret des déclencheurs (« verrou sur la ligne de tête du journal pour sérialiser le chaînage »).
+- **Preuve** :
+  - Le verrou de tête est pris à la première écriture de journal et gardé jusqu'à la fin de la transaction. `appliquer_import` met à jour des milliers de lignes `ecritures` dans une seule transaction : pendant tout l'import, aucune autre écriture n'est possible dans la base (tri, validation, liaison).
+  - Interblocage possible : le comptable relie une écriture E en option B (verrou de ligne sur E, puis attente du verrou de tête) pendant que l'import tient le verrou de tête et veut mettre à jour E. PostgreSQL annule alors l'une des deux transactions. C'est récupérable, mais cela arrivera en S43, quand imports et liaisons sont simultanés.
+- **Correction** :
+  - Écrire le journal sans chaîner dans la transaction (identité croissante), puis faire chaîner les lignes dans l'ordre de leur identifiant, chaque nuit, par une tâche de l'hôte H6 qui écrit `empreinte` et l'ancre.
+  - La détection d'altération reste la même pour toute ligne antérieure à la dernière ancre. Pour les lignes du jour, ajouter une ancre supplémentaire à chaque sauvegarde de deux heures.
+  - Pour éviter les trous d'identité non visibles, chaîner par ordre d'identifiant et consigner les trous de séquence (une transaction annulée en consomme) comme normaux.
+
+#### NV-04 — Recalage : une fenêtre d'une minute et une réintégration incomplète
+- **Gravité** : Majeur (critère 6 ; REC-104).
+- **Emplacement** : ADR-03 (registre hors base, recalage), §5.2 H3, §4.4 `reintegrer_piece`, §8.7.
+- **Preuve** :
+  1. H3 recopie les attributions « chaque minute » et envoie le segment sur GCS. Si le VPS est perdu, les attributions de la dernière minute ne sont ni dans la base restaurée, ni dans le registre local (perdu), ni sur GCS. Le recalage peut donc redonner l'un de ces numéros. Le risque est faible en option B, mais réel si le numéro a été vu et recopié entre-temps (sur le papier, dans un courriel, ou dans l'ERP en option A).
+  2. `reintegrer_piece` reçoit du registre la date, le type, le tiers, le montant et l'empreinte, mais pas `trie_par`, `valide_par`, les décisions, `sens` ni `sans_montant`. Or le déclencheur des champs obligatoires exige `valide_par` dès `Classee`. La fonction doit donc soit contourner ce déclencheur, soit échouer, et la conception ne dit pas lequel des deux.
+  3. Le fichier d'une pièce réintégrée peut être absent de GCS (les objets partent toutes les deux heures). La procédure ne dit pas qu'on le reprend alors dans le lot conservé sur le poste.
+- **Correction** :
+  - Après restauration, `recaler_compteurs` porte le compteur au maximum observé **plus une marge** (par exemple 20 numéros), et crée les numéros de marge comme pièces `Annulee` avec le motif « réserve après restauration du … ». Il n'y a ainsi ni trou ni risque de réémission.
+  - Ajouter au registre `sens`, `sans_montant`, `trie_par` et `valide_par`.
+  - Créer les pièces réintégrées avec `reintegree = vrai`, exemptées des seuls champs absents, et les signaler dans une vue.
+  - Écrire dans §8.7 l'ordre de recherche du fichier : GCS, puis le lot du poste, puis une nouvelle numérisation depuis la boîte du lot.
+
+#### NV-05 — « Refus sans annuler la transaction » : règle juste, mise en œuvre à préciser
+- **Gravité** : Mineur.
+- **Emplacement** : §4.4 « Refus tracés ».
+- **Constat** : une fonction qui renvoie un code de refus valide tout ce qu'elle a déjà écrit. La règle n'est sûre que si tous les contrôles précèdent toute écriture, ou si la fonction annule son travail par un bloc `BEGIN … EXCEPTION` (point de sauvegarde) avant d'écrire la ligne `refus`. `appliquer_import` doit garder ce comportement « tout ou rien ».
+- **Correction** : écrire ce modèle dans §4.4 et ajouter à ARC-007 un test de refus en milieu de traitement.
+
+#### NV-06 — Le redépôt d'un lot sous le même code n'est plus signalé
+- **Gravité** : Mineur (REC-114).
+- **Emplacement** : §5.1 W01 étape 1, §4.4 `enregistrer_fichier`.
+- **Constat** : un même code avec un manifeste identique est traité comme une reprise. Chaque fichier est sauté et aucun doublon n'est compté, alors que REC-114 attend « 10 doublons signalés ».
+- **Correction** : un lot déjà `Ingere` qui revient avec le même code est refusé avec le motif « lot déjà ingéré » ; la reprise ne vaut que pour un lot `En_ingestion` ou `Erreur`.
+
+#### NV-07 — Cas limites de `Fusionnee` et des pièces manquantes
+- **Gravité** : Mineur.
+- **Emplacement** : §4.3 T8, §4.4 `rattacher_justificatif`, §5.3 E11.
+- **Constats** :
+  - Une même empreinte peut appartenir à deux lignes (la pièce `Fusionnee` et la pièce manquante devenue `Classee`). Les recherches de doublon et H5 doivent exclure `Fusionnee`.
+  - `v_inventaire_vs_archive` ne dit pas comment `Fusionnee` est compté.
+  - Le rattachement ne dit pas si la date, le tiers et le montant du justificatif remplacent les valeurs estimées (avec une version dans `pieces_versions`).
+  - La règle « autre année → annulation (T9) » est impossible si la pièce manquante est déjà citée, car T9 exige qu'aucune écriture ne la cite. Prévoir dans ce cas de relier d'abord l'écriture à la nouvelle pièce, puis d'annuler l'ancienne.
+
+#### NV-08 — « Contrôlée » survit à une correction
+- **Gravité** : Mineur.
+- **Emplacement** : §4.1 `v_pieces.controlee`.
+- **Correction** : enregistrer `version` dans `controles_pieces` ; `controlee` n'est vrai que si la version contrôlée est la version courante.
+
+#### NV-09 — Fichiers impossibles à retirer
+- **Gravité** : Mineur (données personnelles).
+- **Emplacement** : ADR-02, §8.6 (rétention verrouillée).
+- **Constat** : un document déposé par erreur (bulletin de paie, pièce d'identité, document non comptable) est scellé et part sous rétention verrouillée sur GCS, même s'il est `Rejetee`. Rien ne prévoit son retrait.
+- **Correction** :
+  - Ne copier sur GCS que les objets des pièces qui ne sont pas `Rejetee`.
+  - Garder les objets rejetés 30 jours sur le VPS seulement, puis les faire retirer par root sur procès-verbal.
+  - Faire valider la règle avec D14.
+
+#### NV-10 — Le format accepte `FT-TS` en production
+- **Gravité** : Mineur.
+- **Emplacement** : ADR-03, garde-fous.
+- **Correction** : la contrainte compare le préfixe à `parametres.prefixe_identifiant` (par déclencheur) au lieu d'accepter les deux préfixes.
+
+#### NV-11 — La copie 3 ne contient que les objets
+- **Gravité** : Mineur (critère 5).
+- **Emplacement** : §8.6, copie 3.
+- **Constat** : sans les dumps ni le registre, la copie 3 ne permet pas, seule, de reconstituer l'index.
+- **Correction** : y copier aussi le dernier dump, les segments du registre et l'ancre de la semaine.
+
+Décompte des nouveaux défauts : 11, soit 1 bloquant (NV-01), 3 majeurs (NV-02, NV-03, NV-04) et 7 mineurs.
+
+### 7.3 Heures et calendrier du backlog v0.2
+
+**Additions : exactes.**
+- Socle et sécurité avant le go :
+  - ARC-001 à ARC-016 = 53 h ;
+  - ARC-019 = 1,5 h ; ARC-020 = 0,5 h ; ARC-024 = 1,5 h ;
+  - ARC-042 = 2 h ; ARC-043 = 3 h ; ARC-044 = 1 h ; ARC-045 = 1 h ;
+  - total 63,5 h.
+- Formation (ARC-017) : 2 h.
+- Écritures et contrôles essentiels : ARC-018 (3 h) + ARC-023 (5 h) + ARC-027a (3 h) = 11 h.
+- Reste avant la remise : 27,5 h (13 tâches recomptées).
+- Total : 104 h.
+- Scénario A : 63,5 h avant le go (12,7 h par jour), puis 2 + 11 + 27,5 = 40,5 h après.
+- Scénario B : 63,5 + 2 + 11 = 76,5 h en 6,5 jours (11,8 h par jour), puis 27,5 h après.
+
+**Calendrier et dépendances : incohérences restantes.**
+1. **Le mercredi 14 n'est pas tenable.** Les tâches datées J06 (14 octobre) totalisent environ 28 h : ARC-010, 011, 012, 043, 024, 013, 015, 044, 045, 016, et ARC-014 (J06b). Elles s'ajoutent au reste d'ARC-007 (9 h, J04–J06). La restauration et les 50 pièces (J06) tomberont au mieux le jeudi 15 au soir, ce qui retarde J06c (plan recalculé), J06d (formation) et la vague R1 de la recette, qui reste fixée au 14 dans `03-PLAN-RECETTE.md` §6.
+2. **Scénario A :** J09a est déplacé au 19–20, mais J09b (écritures de l'année la plus ancienne, 19–20, qui dépend de J09a) et J10 (19–23) ne le sont pas. En option B, le comptable ne peut relier des écritures qu'à des pièces déjà classées : J09b glisse en pratique au 21–22. De plus, ARC-022 (pièces manquantes) est exigée par le critère de J09a (« classé ou déclaré manquant ») mais n'est datée que J10 : elle doit passer en tête des tâches d'après le go.
+3. **ARC-020 :** dans le scénario A, le critère « option ERP décidée » n'a pas de dépendance (ARC-018 n'est liée qu'au scénario B). C'est acceptable si l'on écrit que l'option B, par défaut, vaut décision.
+4. **ARC-046 (copie 3) est datée du 23** alors que REC-094 (bloquant, R1) exige les trois copies dès la vague R1 et que le disque doit être acheté « avant le 14 ». Il faut faire une première copie 3 avant le go.
+5. **Jalons :** J07 et J08 (ERP) sortent de S42 et J09a est déplacé, mais `docs/programme/JALONS-EXECUTION.md` n'est pas mis à jour. Il doit l'être (par l'orchestrateur) pour que recette, backlog et jalons parlent du même calendrier.
+6. **Charge :** les deux scénarios restent au-dessus de 8 h par jour, ce que le backlog reconnaît (§5). Sans renfort nommé ou décalage du go décidé en D2, RS-02 reste ouvert.
+
+### 7.4 Cas bloquants de la recette : nouveau décompte
+
+Sur les 67 cas bloquants : **45 passent** avec la conception v0.2 ; **16 dépendent d'une décision** ; **5 échouent encore** ; **1 n'est pas vérifiable** sur le papier.
+
+**Ils passent désormais, alors qu'ils échouaient en v0.1** (13 cas) : REC-043, 049, 055 (sous réserve de la mesure des 2 secondes), 059, 065, 080, 085, 104 (sous réserve de NV-04), 113, 133, 138, 139, 178. Des 34 cas satisfaits en v0.1, 32 le restent ; REC-064 passe dans la colonne des décisions et REC-114 dans celle des échecs (NV-06).
+
+**Ils dépendent d'une décision** (16 cas) :
+
+| Cas | Décision |
+|---|---|
+| REC-012 | Lecture de « ligne partielle » à approuver |
+| REC-019 | D3 |
+| REC-037, REC-038 | Identifiant attribué à la validation : écart d'exécution à approuver (D3) |
+| REC-044, REC-045 | D2 (limites de l'option B) |
+| REC-054 | D16 |
+| REC-064 | PW-1 impossible par construction (« saisie » est calculée) ; donnée à remplacer par une pièce dont l'écriture a disparu |
+| REC-073 | Une pièce manquante dont l'attestation est rattachée devient `Classee` (nature « Attestation interne ») et non « Manquante » : lecture à approuver |
+| REC-082 | D8 |
+| REC-129 | D7 |
+| REC-132, REC-160 | D7 (développeur administrateur observé, pas empêché) |
+| REC-152 | D6 |
+| REC-177 | D2 (le scénario A reporte l'écran au 21) |
+| REC-182 | D15 |
+
+**Ils échouent encore** (5 cas) :
+
+| Cas | Cause |
+|---|---|
+| REC-094 | Pas de copie 3 avant le go (ARC-046 est datée du 23) |
+| REC-096 | Les « 3 liens écriture-pièce » ne peuvent pas être testés à la restauration qui précède le go (scénario A) |
+| REC-106 | NV-01 (objet tronqué scellé) |
+| REC-114 | NV-06 |
+| REC-176 | NV-02 (P14 ne peut être ni trié ni rejeté) ; dépend aussi de D4 |
+
+**Non vérifiable** (1 cas) : REC-149 (droits des jetons d'API de NocoDB, à essayer en ARC-002).
+
+### 7.5 Verdict sur la version 0.2
+
+**La conception v0.2 est acceptable comme base de construction, sous réserve des décisions D1 à D16**, à trois conditions :
+1. NV-01 (écriture atomique des objets et contrôle de l'empreinte avant scellement) est intégré avant ARC-011 et ARC-043.
+2. NV-02 (rejet depuis `A_trier`), NV-03 (chaînage du journal hors transaction) et NV-04 (marge de réserve et champs du registre) sont intégrés avant ARC-007 et ARC-010.
+3. La décision D2 tranche entre les scénarios A et B en nommant un renfort ou en acceptant le décalage du 14 au 15 décrit au §7.3, et les jalons et la recette (vague R1, REC-064, REC-073, REC-094) sont réalignés sur ce choix.
+
+Les corrections de fond demandées en v0.1 sont présentes et, pour l'essentiel, justes : restauration, W08, justification des écritures, statut calculé, inventaire, pièce manquante, droits et sauvegarde. Les sept constats partiellement résolus et les défauts nouveaux se corrigent par des ajouts ciblés, sans revoir l'architecture.
