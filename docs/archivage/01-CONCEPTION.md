@@ -1,16 +1,67 @@
 # Archivage comptable — Conception (n8n + NocoDB)
 
-Version 0.1 du 11 octobre 2026, rédigée par l'architecte de la chaîne de conception. Ce document s'appuie sur la fiche de cadrage `00-FICHE-CADRAGE.md`, qui fait foi. Conventions : « Hypothèse » signale un fait non établi ; « À confirmer » signale une décision qui revient à un humain ; « À vérifier sur la version installée » signale une capacité de n8n ou de NocoDB que l'architecte n'a pas pu vérifier.
+Rédigée par l'architecte de la chaîne de conception. La fiche de cadrage `00-FICHE-CADRAGE.md` fait foi. Conventions : « Hypothèse » = fait non établi ; « À confirmer » = décision humaine ; « À vérifier sur la version installée » = capacité de n8n, de NocoDB ou de Google Cloud Storage (GCS) non vérifiée ; « Par défaut, sous réserve de Dnn » = option retenue en attendant la décision Dnn de la revue senior (`04-REVUE-SENIOR.md` §6, rappelées au §12).
+
+## Historique des versions
+
+| Version | Date | Auteur | Changements |
+|---|---|---|---|
+| 0.1 | 11 oct. 2026 | Architecte | Première version |
+| 0.2 | 11 oct. 2026 | Architecte | Prise en compte de la revue senior (`04-REVUE-SENIOR.md`, 35 constats) et de l'audit de sécurité (`05-AUDIT-SECURITE.md`, 24 constats). Changements principaux : statut réduit au cycle de vie, « saisie » et « contrôlée » calculées ; registre des identifiants hors base et recalage après restauration ; fichiers stockés une fois sous leur empreinte et rendus non modifiables ; ouverture par `/piece/<id>` derrière l'authentification ; rôles PostgreSQL sans propriété ni superutilisateur, toutes les écritures sensibles par fonctions ; journal chaîné dès le go ; sauvegardes chiffrées par clé publique ; inventaire, plan, versions de pièces, déclarations de pièces manquantes ; exposition réseau délimitée ; trois workflows n8n plus l'alerte, le reste en tâches planifiées de l'hôte et en vues SQL ; migration des métadonnées de NocoDB et de n8n reportée après le 31 octobre |
+
+## Traitement des revues
+
+Légende : **Corrigé** (section) ; **Défaut Dnn** = corrigé avec une option par défaut qui attend la décision Dnn ; **Reporté** (raison, voir §11).
+
+| Constat | Traitement | Constat | Traitement |
+|---|---|---|---|
+| RS-01 compteur après restauration | Corrigé §3 ADR-03, §5.2 H3, §8.7 ; RPO Défaut D9 | SEC-01 W08 public | Corrigé §5.1 W08 supprimé, §8.2 `/piece/<id>` |
+| RS-02 charge S42 | Défaut D2 (backlog v0.2) | SEC-02 journal contournable | Corrigé §4.4, §4.5, §8.11 |
+| RS-03 go du 16 et J09a | Défaut D2 (backlog v0.2, deux scénarios) | SEC-03 empreinte réécrite | Corrigé §4.4 |
+| RS-04 W08 oracle et fuite | Corrigé §8.2 | SEC-04 quatre yeux | Corrigé en partie §4.3, §8.1 ; reste Défaut D7 |
+| RS-05 justification d'une écriture | Défaut D5, §4.3, §5.3 | SEC-05 droits NocoDB | Corrigé §4.5 |
+| RS-06 auteur, refus, TRUNCATE, développeur | Corrigé §4.4, §4.5, §8.11 ; auteur Défaut D7 | SEC-06 traversée de chemin | Corrigé §8.4 |
+| RS-07 statut mélangé | Corrigé §4.3 | SEC-07 commandes système | Corrigé §8.4 |
+| RS-08 inventaire absent | Corrigé §4.2, §5.3 E11 | SEC-08 exposition réseau | Corrigé §8.2 |
+| RS-09 parcours pièce manquante | Corrigé §4.2, §4.4 | SEC-09 SQL et CSV | Corrigé §5.1 W05, §8.4 |
+| RS-10 US-ARC-09 exclue | Défaut D6 §7.1 | SEC-10 sauvegardes | Corrigé §8.6 ; durée de rétention Défaut D9/D14 |
+| RS-11 base dédiée non présentée | Défaut D1 §1 Écart 2 ; migration reportée | SEC-11 jetons NocoDB | Corrigé §8.3 (action sur la configuration du site soumise à accord) |
+| RS-12 W01 reprise | Corrigé §5.1 W01 | SEC-12 secrets générés | Corrigé §8.3 |
+| RS-13 W05 coupé en deux | Corrigé §5.1 W05 | SEC-13 type et taille de fichier | Corrigé §5.1 W01, §8.2 ; taille Défaut D4 |
+| RS-14 sauvegarde GCS et copie 3 | Corrigé §8.6 | SEC-14 immuabilité des fichiers | Corrigé §3 ADR-02, §5.2 H1 |
+| RS-15 droits trop larges | Corrigé §4.5 | SEC-15 double authentification | Corrigé §8.1 |
+| RS-16 option B | Corrigé §4.4, §7.4 ; REC-045 Défaut D2 | SEC-16 injection de formules | Corrigé §8.4 |
+| RS-17 rapprochement bancaire | Défaut D8 §4.2 | SEC-17 supervision, RPO/RTO | Corrigé §8.8 ; valeurs Défaut D9 |
+| RS-18 quatre yeux contrôle | Défaut D10 §4.3, §7.2 | SEC-18 n8n partagé avec le site | Corrigé §8.2 (ARC-041) |
+| RS-19 correction sans version | Défaut D11 §4.2, §4.4 | SEC-19 poste et SFTP | Corrigé §8.4 |
+| RS-20 vue de balance | Corrigé §5.3 | SEC-20 données dans les journaux | Corrigé §8.11 ; partie code du site Reporté |
+| RS-21 avoirs, sans montant | Défaut D4 §4.1 | SEC-21 garde-fous IA | Corrigé §3 ADR-06 (option toujours désactivée) |
+| RS-22 états sans issue | Corrigé §4.3 | SEC-22 données réelles sur postes | Corrigé §8.7, §8.9 |
+| RS-23 déclarations en double | Corrigé §4.4 | SEC-23 `.gitignore`, compose de dev | Reporté (autres fichiers) ; tâche ARC-052 |
+| RS-24 plan absent | Corrigé §4.2 | SEC-24 accès aux types sensibles | Corrigé §4.2 (`7_Paie` inactif) ; restriction fine Reporté |
+| RS-25 modifications concurrentes | Corrigé (parade) §4.1 ; REC-039 Défaut D15 | | |
+| RS-26 échantillon | Défaut D15 §5.3 | | |
+| RS-27 identifiant de test | Corrigé §4.4, §8.9 | | |
+| RS-28 dates incohérentes | Corrigé (backlog v0.2) | | |
+| RS-29 nommage incomplet | Corrigé §4.7 ; noms de mois Défaut D12 | | |
+| RS-30 borne de date | Corrigé §4.4 | | |
+| RS-31 W02 concurrent | Corrigé (plus d'écriture de fichier à la validation, §5.1) | | |
+| RS-32 tiers dans les journaux | Corrigé §8.11 | | |
+| RS-33 plusieurs écritures par pièce | Corrigé §4.1 | | |
+| RS-34 années ouvertes | Défaut D3 §4.2 | | |
+| RS-35 W10, W11, W07b | Reporté (§11) ; alerte disque et sonde gardées | | |
 
 ## 1. Résumé
 
-1. Les données de l'archive (index des pièces, compteurs, écritures importées, contrôles, journal) vivent dans une base PostgreSQL dédiée, `archive_compta`, avec un volume persistant ; NocoDB sert d'écran au-dessus de cette base, n8n automatise.
-2. Les fichiers sont rangés sur le disque du serveur, selon l'arborescence et le nom figés ; une copie part chaque nuit sur Google Cloud Storage et une autre chaque semaine sur un disque externe au bureau (règle 3-2-1).
-3. L'identifiant `FT-PC-AAAA-NNNNN` est attribué par une seule fonction SQL qui verrouille le compteur de l'année et écrit l'identifiant sur la pièce dans la même transaction : ni doublon, ni trou, même avec des exécutions n8n simultanées.
-4. Un humain valide chaque classement avant l'attribution d'identifiant ; le système refuse les transitions d'état non autorisées, interdit la suppression et garde un journal en ajout seul.
-5. Le lien avec l'ERP passe par un fichier CSV d'écritures au format fixe ; l'option A (l'ERP enregistre `piece_id` sur chaque écriture) est recommandée, l'option B (correspondance saisie dans NocoDB) sert de repli. Aucune intelligence artificielle n'est nécessaire.
+1. Les données de l'archive (pièces, compteurs, écritures importées, contrôles, journal) vivent dans une base PostgreSQL dédiée, `archive_compta`, sur volume persistant ; NocoDB en est l'écran, n8n l'automate ; toute écriture sensible passe par une fonction SQL.
+2. Chaque fichier est stocké une seule fois sous le nom de son empreinte, puis rendu non modifiable ; l'arborescence `Archive/AAAA/N_Type/MM_Mois/` et les noms de la fiche sont des liens vers ces fichiers ; les sauvegardes sont chiffrées et partent sur GCS et sur un disque externe.
+3. L'identifiant `FT-PC-AAAA-NNNNN` est attribué par une fonction qui verrouille le compteur de l'année dans la transaction de validation ; un registre des identifiants tenu hors base et un recalage obligatoire après toute restauration empêchent de réémettre un numéro déjà sorti.
+4. Le statut stocké ne décrit que le cycle de vie de la pièce ; « saisie dans l'ERP » et « contrôlée » sont calculées ; une écriture n'est justifiée que si elle cite une pièce classée ou une pièce manquante déclarée.
+5. Démarrage en option B (écritures importées par CSV, reliées dans NocoDB) ; option A (l'ERP enregistre l'identifiant) visée ensuite sans changer l'archive ; aucune intelligence artificielle.
 
-**Écart avec le programme d'exécution.** Le programme v0.2 (§3.3) plaçait l'index des pièces dans la base de l'ERP. La décision du 11 octobre (fiche §2) le place dans n8n + NocoDB. Conséquences : le journal d'audit, les droits et la règle des quatre yeux de l'ERP ne s'appliquent pas à l'archive et sont reconstruits ici (§4.4, §8) ; le jalon J08 devient « champ `piece_id` dans l'ERP et ouverture de la pièce depuis l'écriture », sans table de pièces propre à l'ERP (une seule source de vérité des pièces : l'archive).
+**Écart 1 avec le programme d'exécution.** Le programme v0.2 (§3.3) plaçait l'index des pièces dans l'ERP ; la décision du 11 octobre le place dans n8n + NocoDB. Le journal, les droits et les quatre yeux de l'ERP ne s'appliquent pas à l'archive ; ils sont reconstruits ici (§4.4, §4.5, §8). Le jalon J08 devient « identifiant de pièce sur les écritures et ouverture de la pièce », sans table de pièces dans l'ERP.
+
+**Écart 2 avec la décision « n8n + NocoDB » — à valider par l'utilisateur (D1).** La conception ajoute une base PostgreSQL dédiée sous NocoDB et place les règles métier (attribution, transitions, quatre yeux, champs obligatoires, journal) en fonctions et déclencheurs PostgreSQL, et non dans NocoDB ou n8n. Conséquences pour l'entreprise : la maintenance demande un développeur capable d'écrire des migrations SQL ; NocoDB devient un écran dont certains messages d'erreur seront ceux de PostgreSQL ; un composant de plus à sauvegarder. Raison : c'est le seul moyen identifié d'obtenir une numérotation sans doublon ni trou et des règles qui tiennent quel que soit l'outil qui écrit (ADR-01, ADR-03). Repli si D1 est refusée ou si NocoDB ne gère pas la source externe : ADR-01 option 2. **Par défaut, sous réserve de D1** : base dédiée ; les métadonnées de NocoDB et de n8n restent dans leur moteur actuel, avec seulement des volumes persistants en S42 ; leur migration vers PostgreSQL est reportée après le 31 octobre.
 
 ## 2. Architecture
 
@@ -18,614 +69,538 @@ Version 0.1 du 11 octobre 2026, rédigée par l'architecte de la chaîne de conc
 
 | Composant | Rôle | Emplacement | État connu |
 |---|---|---|---|
-| n8n | Automatisation : ingestion, attribution, rangement, imports, contrôles, sauvegardes, alertes | VPS Hostinger KVM2 | En place (fiche §2) ; version, mode d'installation et base interne inconnus : **à relever (ARC-001)** |
-| NocoDB | Écrans : files de travail, formulaires, vues filtrées, tableau de bord | VPS | En place ; a perdu ses données en juin 2026 faute de volume persistant |
-| PostgreSQL `archive_compta` | Données de l'archive, règles d'intégrité (contraintes, déclencheurs, fonction d'attribution) | VPS, conteneur ou instance dédiée, volume persistant | À créer |
-| PostgreSQL `nocodb_meta`, `n8n` | Métadonnées de NocoDB et de n8n (définitions de vues, workflows, identifiants chiffrés) | Même instance PostgreSQL, bases séparées | À créer ou migrer (Hypothèse : aujourd'hui SQLite ou base interne non persistante) |
-| Stockage des fichiers | `/srv/archive/` : `depot/`, `a_trier/`, `quarantaine/`, `fichiers/Archive/…`, `imports/`, `sauvegardes/` | Disque du VPS | À créer ; espace libre inconnu : **à relever (ARC-001)** |
-| Nginx | HTTPS, accès authentifié en lecture seule aux fichiers, journal des accès | VPS, déjà installé pour le site | En place |
-| Poste de numérisation | Scanner ou smartphone, dossier local d'envoi, script d'envoi de lot | Bureau Foga-Tech | Matériel à confirmer |
-| ERP SFP Suite BTP | Comptabilité ; cite `id_piece` sur les écritures (option A) ; produit le CSV des écritures | Poste du développeur, puis VPS (J07) | Code non accessible : contrat §7 à confirmer |
-| Sauvegardes | Copie 2 : bucket Google Cloud Storage ; copie 3 : disque externe au bureau | Hors VPS | Abonnement GCS cité (11 883 FCFA/an), bucket à créer ; disque à acheter (prix non chiffré) |
+| n8n | Trois workflows (ingestion, décisions humaines, import des écritures) + workflow d'erreur + `/piece` | VPS Hostinger KVM2, conteneur (Hypothèse) | En place ; version, base interne, exposition : à relever (ARC-001) |
+| NocoDB | Écrans : files de travail, formulaires, vues de contrôle | VPS | En place ; a perdu ses données en juin 2026 |
+| PostgreSQL `archive_compta` | Données, fonctions, déclencheurs, vues de contrôle | VPS, conteneur dédié, non publié, données dans `/srv/archive/pgdata` | À créer |
+| Métadonnées NocoDB et n8n | Définitions des vues, workflows, identifiants chiffrés | Moteur actuel, sur volume persistant | Volume à monter (S42) ; migration PostgreSQL reportée |
+| Stockage | `/srv/archive/` (§4.6) | Disque du VPS | À créer ; espace libre inconnu (ARC-001) |
+| Tâches planifiées de l'hôte | H1 scellement des fichiers, H2 liens d'arborescence, H3 registre des identifiants, H4 sauvegarde, H5 intégrité, H6 alerte disque (§5.2) | VPS (cron ou systemd) | À créer |
+| Nginx | HTTPS, authentification, `/piece/<id>`, `/apercu/<n>`, en-têtes | VPS, déjà installé | En place |
+| Poste de numérisation | Scanner, dossier `A_ENVOYER/`, script d'envoi | Bureau | Matériel et système à confirmer |
+| ERP SFP Suite BTP | Source des écritures (CSV) ; option A plus tard | Poste du développeur, puis VPS (hors S42, Défaut D2) | Code non accessible : contrat §7 |
+| Sauvegardes | Copie 2 : bucket GCS sous rétention ; copie 3 : disque externe chiffré | Hors VPS | À créer et acheter (prix non chiffré) |
 
-### 2.2 Flux d'une pièce, de la collecte au contrôle
+### 2.2 Flux d'une pièce
 
-1. **Collecte** (humain : aide au tri). La pièce papier est numérisée en un PDF par pièce dans le dossier local `A_ENVOYER/LOT-AAAAMMJJ-HHMM-POSTE/` du poste. Le papier reçoit au crayon le code du lot et reste dans une boîte au nom du lot.
-2. **Envoi** (humain lance, script exécute). Le script calcule l'empreinte SHA-256 de chaque fichier, écrit `manifest.csv`, copie le lot vers `/srv/archive/depot/` par SFTP, puis dépose le fichier `_PRET` en dernier. Une coupure réseau interrompt la copie ; la relance reprend sans doublon.
-3. **Ingestion** (système, W01). n8n voit `_PRET`, vérifie chaque empreinte contre le manifeste, écarte les doublons exacts, copie chaque nouveau fichier dans `a_trier/<empreinte>.pdf` et crée une ligne `pieces` au statut `A_trier`, sans identifiant.
-4. **Tri** (humain : aide au tri ou comptable). Dans la vue « File à trier », l'humain ouvre l'aperçu, saisit date, type, tiers, montant, numéro du document chez le tiers, puis passe la pièce à `A_valider`.
-5. **Validation** (humain : comptable ou responsable de validation, différent de la personne qui a trié). Dans la vue « À valider », l'humain choisit « Valider » ou « Renvoyer » (motif obligatoire). Un avertissement signale un doublon probable (même tiers, date, montant, numéro de document).
-6. **Attribution et rangement** (système, W02). n8n appelle la fonction SQL `attribuer_id_piece` (identifiant écrit dans la même transaction), copie le fichier sous son nom définitif dans `fichiers/Archive/AAAA/N_Type/MM_Mois/`, relit l'empreinte, puis passe la pièce à `Classee`.
-7. **Saisie dans l'ERP** (humain : comptable). L'écriture cite l'identifiant (option A) ; ou le comptable relie l'écriture importée à la pièce dans NocoDB (option B).
-8. **Import des écritures** (système, W05). Le CSV des écritures est importé ; chaque pièce citée passe à `Saisie_ERP`.
-9. **Contrôles inverses** (système, W06 ; humain corrige). Écritures sans pièce, pièces saisies sans écriture, identifiants cités inconnus, trous de numérotation, fichiers absents ou modifiés : chaque anomalie devient une ligne `ecarts` avec un responsable.
-10. **Contrôle** (humain : responsable de validation). Échantillon de 30 pièces par année, puis passage à `Controlee`.
+1. **Collecte** (humain : aide au tri). Un PDF par pièce dans `A_ENVOYER/LOT-AAAAMMJJ-HHMM-POSTE/` ; papier rangé dans la boîte du lot.
+2. **Envoi** (humain lance, script exécute). Empreintes SHA-256 dans `manifest.csv`, copie SFTP reprise après coupure, `_PRET` déposé en dernier.
+3. **Ingestion** (système, W01). Vérifications (octets de tête `%PDF-`, taille, empreinte du manifeste) ; fichier copié dans `objets/<sha256>.pdf` ; pièce créée `A_trier` ; H1 rend le fichier non modifiable.
+4. **Tri** (humain). Vue « File à trier » : aperçu par `/apercu/<n>`, saisie date, type, tiers, montant, numéro du document ; passage à `A_valider`.
+5. **Validation** (humain, autre compte que le trieur). Décision Valider, Renvoyer ou Rejeter dans la vue « À valider » ; avertissement de doublon probable.
+6. **Attribution** (système, W02). Contrôle des quatre yeux, puis fonction `valider_piece` : identifiant attribué, nom et chemin calculés en SQL, statut `Classee`, journal, dans une seule transaction. H3 recopie l'attribution dans le registre hors base ; H2 crée le lien d'arborescence.
+7. **Écritures** (humain : comptable). CSV déposé ; W05 l'importe en une transaction ; le comptable relie chaque écriture à sa pièce (option B) ou l'ERP l'a déjà citée (option A).
+8. **Contrôles** (vues SQL ; humain corrige). E01 à E13 (§5.3) consultés dans NocoDB et envoyés chaque matin en CSV.
+9. **Contrôle d'échantillon** (humain : responsable de validation). Ligne `controles_pieces` ; la pièce apparaît « Contrôlée ».
 
 ### 2.3 Schéma
 
 ```
- POSTE DE NUMÉRISATION (bureau)                VPS HOSTINGER KVM2
- +---------------------------+   SFTP    +---------------------------------------------+
- | scanner -> A_ENVOYER/LOT/ |---------->| /srv/archive/depot/LOT-.../  (+ _PRET)      |
- | manifest.csv (SHA-256)    |  reprise  |        |                                    |
- +---------------------------+           |        v W01 ingestion                      |
-          ^                              | /srv/archive/a_trier/<sha256>.pdf           |
-          | disque externe (copie 3,     |        |                                    |
-          | hebdomadaire, hors ligne)    |  NocoDB (écrans) <--> PostgreSQL            |
-          |                              |    vues, formulaires   archive_compta       |
- +--------+------------------+           |                        - pieces, compteurs  |
- | NAVIGATEUR                |  HTTPS    |                        - attribuer_id_piece |
- | comptable, aide au tri,   |<--------->|  Nginx (auth)          - journal_audit      |
- | validation, Direction     |           |    /fichiers/ lecture   nocodb_meta, n8n    |
- +---------------------------+           |        |                                    |
-                                         |        v W02 rangement                      |
- +---------------------------+  CSV      | /srv/archive/fichiers/Archive/AAAA/N_Type/  |
- | ERP SFP Suite BTP         |---------->| /srv/archive/imports/  -> W05 -> ecritures   |
- | écriture.piece_id (opt. A)|<-- lien --| W08 « ouvrir pièce » (redirection)          |
- +---------------------------+           |  W06 contrôles -> ecarts ; W09 alertes      |
-                                         |  W07 sauvegarde -----------+                |
-                                         +----------------------------|----------------+
-                                                                      v
-                                              Google Cloud Storage (copie 2, hors site)
+ POSTE (bureau)                         VPS HOSTINGER KVM2 (seuls 22 et 443 ouverts)
+ +----------------------+  SFTP chroot +------------------------------------------------+
+ | A_ENVOYER/LOT-.../   |------------->| depot/  --W01-->  objets/<sha256>.pdf (0444)   |
+ | manifest + _PRET     |              |                     ^ H1 scelle                |
+ +----------------------+              |   PostgreSQL archive_compta (non publié)       |
+ | disque externe       |<-- copie 3 --|   fonctions SECURITY DEFINER, journal chaîné   |
+ | chiffré (hebdo)      |   (via GCS)  |     ^ arch_nocodb       ^ arch_n8n             |
+ +----------------------+              |   NocoDB (écrans)    n8n (W01 W02 W05 W09)     |
+ NAVIGATEUR (comptes nominatifs)       |     ^                   ^ 127.0.0.1           |
+   --HTTPS--> Nginx (auth) -------------+-----+-------------------+                    |
+   /piece/<id>, /apercu/<n> --> n8n --> X-Accel-Redirect --> /_objets/ (interne)      |
+ ERP / Excel --CSV--> SFTP « imports » --> W05                                       |
+                                       |  H2 Archive/AAAA/N_Type/MM_Mois/<nom> -> lien |
+                                       |  H3 registre_ids/AAAA.log ---+                |
+                                       |  H4 dump + fichiers chiffrés -+--> GCS (rétention)
+                                       +------------------------------------------------+
 ```
 
 ## 3. Décisions d'architecture (ADR)
 
-### ADR-01 — Base sous-jacente de NocoDB et persistance
-
-**Contexte.** NocoDB a perdu ses données en juin 2026 faute de volume persistant. L'archive doit garantir l'unicité et la continuité des identifiants, interdire la suppression et tenir un journal en ajout seul. NocoDB peut stocker ses tables dans sa propre base (SQLite par défaut, ou PostgreSQL via sa variable de connexion) ou se connecter à une base externe existante (« source de données externe », **à vérifier sur la version installée**). PostgreSQL 16 est déjà prévu sur le VPS pour le site (`docs/DEPLOY-KVM2.md`).
-
-| Option | Avantages | Inconvénients |
-|---|---|---|
-| 1. SQLite interne de NocoDB, fichier sur volume | Rien à installer | Pas de verrou de ligne ni de fonction transactionnelle exploitable par n8n ; accès concurrent limité ; contraintes et déclencheurs gérés par NocoDB seul ; c'est le montage qui a déjà échoué |
-| 2. PostgreSQL comme base interne de NocoDB (tables créées par NocoDB) | Une seule base ; persistance correcte avec volume | Les noms et la structure des tables sont gérés par NocoDB (préfixes, schémas : à vérifier) ; ajouter nos contraintes à la main est fragile lors des mises à jour de NocoDB |
-| 3. **Base PostgreSQL dédiée `archive_compta`, créée et versionnée par nous, branchée sur NocoDB comme source externe** ; métadonnées de NocoDB et de n8n dans des bases PostgreSQL séparées de la même instance | Règles d'intégrité dans la base (contrainte d'unicité, déclencheurs, fonction d'attribution), valables quel que soit l'outil qui écrit ; n8n parle SQL directement ; schéma versionné en fichiers de migration ; sauvegarde par `pg_dump` | Dépend de la prise en charge des sources externes par NocoDB (à vérifier) ; quelques fonctions de NocoDB peuvent être limitées sur une source externe (à vérifier) ; schéma à maintenir par le développeur |
-
-**Recommandation : option 3.** Instance PostgreSQL 16 dédiée à l'archive (conteneur ou service séparé de la base du site, Hypothèse : n8n et NocoDB tournent en conteneurs Docker), données dans un répertoire hôte `/srv/archive/pgdata` monté en volume. Avant tout usage : redémarrage complet du serveur, puis vérification que les tables, les vues NocoDB et les workflows n8n sont toujours présents (critère de ARC-005). n8n utilise aussi PostgreSQL pour sa propre base (configuration de base de données de n8n : à vérifier sur la version installée) ; sa clé de chiffrement des identifiants est sauvegardée à part.
-
-**Si l'option 3 n'est pas possible** (source externe absente de la version installée) : option 2, avec les contraintes ajoutées par migration SQL sur les tables créées par NocoDB et un test de non-régression après chaque mise à jour de NocoDB.
-
-**Coût de se tromper.** Option 1 retenue à tort : perte de données ou identifiants en double, c'est-à-dire l'échec des critères 5 et 6. Option 3 retenue à tort (fonction absente) : une demi-journée perdue avant de basculer sur l'option 2.
-
-### ADR-02 — Emplacement des fichiers
-
-**Contexte.** Trois candidats cités : disque du VPS, Google Cloud Storage (GCS), Google Drive. Volume inconnu jusqu'au 13 octobre. Réseau du bureau instable. Espace disque du VPS inconnu (le guide de déploiement cite « min. 100 GB SSD », non vérifié sur la machine réelle).
+### ADR-01 — Base sous-jacente et persistance
+**Contexte.** Perte de données de NocoDB en juin 2026 ; besoin d'une attribution transactionnelle et de règles indépendantes de l'outil.
 
 | Option | Avantages | Inconvénients |
 |---|---|---|
-| 1. **Disque du VPS comme emplacement principal** | Lecture et écriture locales pour n8n (nœuds de fichiers) ; ouverture rapide via Nginx ; aucune dépendance réseau entre n8n et les fichiers ; droits Unix simples | Capacité limitée au disque ; un seul site physique, donc copie hors site indispensable |
-| 2. GCS comme emplacement principal | Capacité extensible ; versionnement et rétention d'objets (à vérifier selon l'offre souscrite) | Chaque opération de n8n passe par le réseau ; droits par compte de service ; coût au volume non chiffré ; ouverture d'une pièce plus complexe (liens signés) |
-| 3. Google Drive | Familier ; consultation facile | Renommages et déplacements faits à la main hors contrôle ; doublons de noms permis ; droits de partage trop permissifs ; quotas d'API ; aucune garantie que le chemin indexé reste vrai |
+| 1. SQLite interne de NocoDB sur volume | Rien à installer | Pas de fonction transactionnelle exploitable ; règles portées par NocoDB seul |
+| 2. PostgreSQL comme base interne de NocoDB | Une base | Tables gérées par NocoDB ; contraintes ajoutées à la main, fragiles aux mises à jour |
+| 3. **Base `archive_compta` créée et versionnée par nous, branchée sur NocoDB comme source externe** | Règles dans la base ; n8n parle SQL ; migrations versionnées | Source externe à vérifier sur la version installée ; écart à présenter (Écart 2) |
 
-**Recommandation : option 1 pour l'emplacement principal, GCS pour la copie hors site** (ADR-07 du §8.4). Google Drive n'est pas utilisé pour l'archive. Seuil d'alerte disque : 80 % (paramètre). Si l'inventaire (J02) montre un volume qui dépasse la capacité du disque, l'option 2 redevient candidate ; la structure `chemin` relatif dans l'index rend ce changement possible sans toucher aux identifiants.
+**Recommandation : option 3 (Défaut D1).** Conteneur PostgreSQL 16 dédié, non publié, données dans `/srv/archive/pgdata`. En S42, NocoDB et n8n gardent leur moteur de métadonnées ; on monte seulement leurs volumes persistants et on fixe leurs clés (§8.3), puis redémarrage complet du serveur et vérification. **Coût de se tromper** : option 1 = perte de données ou doublons (critères 5 et 6) ; option 3 impossible = une demi-journée avant de basculer en option 2.
 
-**Coût de se tromper.** Disque saturé en pleine semaine S43 : arrêt de l'ingestion ; mesure préventive : relevé d'espace à ARC-001 et alerte à 80 %. Drive retenu à tort : chemins faux dans l'index, critère 4 (retrouver en moins de 2 minutes) compromis.
+### ADR-02 — Emplacement et immuabilité des fichiers
+**Contexte.** Disque du VPS, GCS ou Google Drive ; réseau du bureau instable ; un fichier rangé ne doit plus pouvoir changer (SEC-14).
 
-### ADR-03 — Attribution atomique et sans trou de `FT-PC-AAAA-NNNNN`
+| Option | Avantages | Inconvénients |
+|---|---|---|
+| 1. **Disque du VPS : stockage par empreinte `objets/<sha256>.pdf`, non modifiable ; arborescence de la fiche faite de liens** | Contenu jamais réécrit ; corrections = changement de lien ; ouverture rapide | Capacité du disque ; copie hors site indispensable |
+| 2. GCS principal | Capacité | Chaque opération passe par le réseau ; liens signés ; coût non chiffré |
+| 3. Google Drive | Familier | Renommages hors contrôle, droits trop larges, chemins faux |
 
-**Contexte.** Plusieurs exécutions n8n peuvent valider des pièces en même temps (deux personnes valident à la même minute, une relance après erreur). L'API de NocoDB n'expose pas de compteur transactionnel. « Sans trou » signifie ici : pour chaque année, tout numéro de 1 au dernier attribué correspond à exactement une ligne `pieces`, qui n'est jamais supprimée (une pièce attribuée par erreur passe à `Annulee` et garde son numéro). « Année » = année de `date_piece` (Hypothèse, **à confirmer à J04** : on pourrait aussi retenir l'année de l'exercice ou l'année d'archivage).
+**Recommandation : option 1, GCS pour la copie hors site.** H1 passe chaque nouvel objet à `root:root 0444` dans un répertoire au bit collant (n8n ne peut ni le modifier ni le supprimer) ; `chattr +i` en plus si le système de fichiers le permet (à vérifier). Seuil d'alerte disque 80 %. **Coût de se tromper** : disque plein = ingestion arrêtée (alerte H6) ; Drive = chemins faux, critère 4 compromis.
 
-| Option | Pourquoi elle échoue ou réussit |
+### ADR-03 — Attribution sans doublon ni trou, y compris après restauration
+**Contexte.** Exécutions concurrentes ; NocoDB n'a pas de compteur transactionnel ; restauration possible d'un dump antérieur à des attributions (RS-01). « Sans trou » = pour chaque année, chaque numéro de 1 au dernier est porté par exactement une ligne `pieces`, jamais supprimée. Année = année de `date_piece` (Défaut D3).
+
+| Option | Verdict |
 |---|---|
-| 1. n8n lit le plus grand numéro via l'API NocoDB et ajoute 1 | Deux exécutions simultanées lisent le même maximum : doublon. Rejetée |
-| 2. Champ « numéro automatique » de NocoDB (séquence de la base) | Une séquence PostgreSQL n'est pas sans trou (une transaction annulée consomme un numéro) et n'est pas remise à zéro par année. Rejetée |
-| 3. Forcer n8n à une seule exécution à la fois (file unique, limite de concurrence) | Dépend d'un réglage de n8n (à vérifier sur la version installée) ; une panne entre l'incrément et l'écriture laisse un trou ; ne protège pas d'une écriture faite depuis NocoDB. Rejetée comme mécanisme principal |
-| 4. **Fonction PostgreSQL unique qui verrouille la pièce et la ligne du compteur de l'année, incrémente, écrit l'identifiant sur la pièce et le journal, le tout dans une seule transaction** | Le verrou de ligne fait attendre la seconde exécution ; si quoi que ce soit échoue, toute la transaction est annulée, compteur compris : ni trou ni doublon. Retenue |
+| Lire le maximum via l'API NocoDB + 1 | Doublon en cas de concurrence. Rejetée |
+| Champ « numéro automatique » (séquence) | Une séquence n'est pas sans trou ni annuelle. Rejetée |
+| n8n limité à une exécution | Réglage incertain, trou en cas de panne. Rejetée |
+| **Fonction PostgreSQL unique : verrou de la pièce et de la ligne du compteur, incrément, écriture de l'identifiant, du nom, du chemin, du statut et du journal dans une transaction ; registre hors base ; recalage obligatoire après restauration** | Retenue |
 
-**Recommandation : option 4**, complétée par des garde-fous dans la base :
-- contrainte d'unicité sur `pieces.id_piece` et contrainte de format `^FT-PC-[0-9]{4}-[0-9]{5}$` ;
-- déclencheur qui interdit de modifier un `id_piece` déjà renseigné et de supprimer une ligne `pieces` ;
-- déclencheur qui interdit de diminuer `compteurs.dernier` ;
-- contrôle W06 qui recompte chaque jour : pour chaque année, nombre de pièces numérotées = `dernier`, et aucun numéro manquant entre 1 et `dernier`.
-
-Logique de la fonction (pseudo-code, à écrire en PL/pgSQL à ARC-007) :
-
+Logique de `valider_piece(p_piece, p_execution)` (PL/pgSQL, `SECURITY DEFINER`, `SET search_path` fixé) :
 ```
-attribuer_id_piece(p_piece, p_acteur, p_execution) -> texte
-  début de transaction (implicite : un appel de fonction est une transaction)
-  lire la pièce p_piece en la verrouillant (SELECT … FOR UPDATE)
-  si la pièce a déjà un id_piece : renvoyer cet id_piece (appel rejoué = même réponse)
-  si le statut n'est ni A_valider avec décision « Valider », ni Manquante sans id : erreur
-  si date_piece, type, tiers ou montant manquent : erreur
-  annee := année de date_piece
-  insérer la ligne compteurs(annee, 0) si elle n'existe pas (sans erreur si elle existe)
-  incrémenter compteurs.dernier pour annee et lire la nouvelle valeur (UPDATE … RETURNING)
-    -> le verrou de ligne sérialise les appels simultanés pour la même année
-  si valeur > 99999 : erreur (capacité du format dépassée)
-  id := 'FT-PC-' || annee || '-' || valeur sur 5 chiffres
-  écrire id sur la pièce ; statut := Classement_en_cours (ou reste Manquante)
-  écrire une ligne journal_audit (action ATTRIBUTION, acteur, exécution n8n)
-  renvoyer id
+si parametres.attribution_suspendue : renvoyer le code REFUS_SUSPENDU (refus consigné, §4.4)
+verrouiller la pièce (SELECT … FOR UPDATE)
+si elle a déjà un id_piece : renvoyer cet identifiant (rejeu)
+contrôler : statut A_valider, decision = Valider, champs obligatoires, quatre yeux (§4.3)
+  sinon : renvoyer un code de refus et le consigner (pas d'exception)
+annee := année de date_piece ; insérer compteurs(annee, 0) s'il manque
+UPDATE compteurs SET dernier = dernier + 1 WHERE annee = … RETURNING dernier   -- verrou de ligne
+si > 99999 : exception
+id := prefixe_identifiant || '-' || annee || '-' || numéro sur 5 chiffres   -- FT-PC, ou FT-TS en test
+calculer nom_fichier et chemin (§4.7) ; statut := Classee ; journal ATTRIBUTION
+renvoyer id
 ```
+Garde-fous : unicité de `id_piece` ; format `^FT-(PC|TS)-[0-9]{4}-[0-9]{5}$` ; `id_piece` et `compteurs` écrits seulement par les fonctions (§4.5) ; `compteurs.dernier` ne peut passer qu'à `dernier + 1`, sauf par `recaler_compteurs` (hausse seulement) ; pièces jamais supprimées.
 
-Le rangement du fichier vient après l'attribution, hors transaction. S'il échoue, la pièce reste à `Classement_en_cours` avec son identifiant : ce n'est pas un trou (le numéro est porté par une pièce réelle) et W02 rejoué termine le rangement.
+**Registre hors base (H3).** Chaque minute, H3 lit les nouvelles attributions et les ajoute à `/srv/archive/registre_ids/AAAA.log` (`annee;numero;id_piece;empreinte;date_piece;type;tiers;montant;horodatage`), fichier en ajout seul, puis envoie le nouveau segment chiffré sur GCS sous un nom unique. Ce registre contient des données de tiers : il est protégé et sauvegardé comme l'archive.
 
-**Coût de se tromper.** Un doublon ou un trou casse le critère 6 et la confiance dans toute la série ; une correction a posteriori obligerait à renommer des fichiers déjà cités par des écritures. C'est la décision la plus coûteuse de la conception : complexité L4, tests de concurrence obligatoires (ARC-007).
+**Recalage après restauration (procédure §8.7, obligatoire).** `attribution_suspendue = vrai` ; maximum observé par année dans le registre, dans les liens d'arborescence, dans les segments GCS et dans le dernier CSV d'écritures ; réintégration de chaque pièce présente dans le registre mais absente de la base par `reintegrer_piece` (journalisée) ; `recaler_compteurs` au maximum observé ; levée de la suspension. Test obligatoire (ARC-007) : sauvegarde S1, 20 attributions, restauration de S1, recalage, nouvelle attribution → `…-00021`.
+
+**Coût de se tromper.** Doublon ou trou : critère 6 cassé, fichiers déjà cités à renommer. Complexité L4.
 
 ### ADR-04 — Lien avec l'ERP
-
-**Contexte.** On ignore si l'ERP a un champ « numéro de pièce » et s'il sait exporter ses écritures (fiche §8). On ignore aussi où sont aujourd'hui les écritures des trois exercices (Excel, papier, logiciel, expert-comptable : réponse attendue à J02b) et comment elles seront reprises (J04b). Le contrat doit donc fonctionner quelle que soit la source des écritures.
-
-| Option | Description | Avantages | Inconvénients |
-|---|---|---|---|
-| A. **L'ERP stocke `id_piece` sur chaque écriture** | Champ `piece_id` (ou motif de pièce manquante) obligatoire au point d'écriture unique `comptabilisation.py` ; l'ERP exporte ses écritures avec ce champ ; lien cliquable vers la pièce | Le comptable cite la pièce au moment de la saisie (US-ARC-02) ; aucune double saisie ; lien dans les deux sens | Modification du code de l'ERP, non vu ; dépend de la mise en ligne de l'ERP (J07, J08) |
-| B. Rapprochement par export CSV | L'ERP (ou l'Excel du comptable) exporte ses écritures sans numéro de pièce ; le comptable relie chaque écriture importée à sa pièce dans NocoDB | Aucune modification de l'ERP ; fonctionne même si l'ERP n'est pas en ligne | Double travail pour le comptable ; une ré-saisie dans l'ERP peut changer la clé de l'écriture et casser le lien ; US-ARC-02 non couverte dans l'ERP |
-
-**Recommandation : option A comme cible, avec le même format CSV que l'option B** (§7). Dans les deux cas, l'archive importe le CSV des écritures pour faire les contrôles inverses : l'option A ne dispense pas de l'import. Décision ferme au plus tard le jeudi 15 octobre, après lecture du code de l'ERP par le développeur (ARC-018), pour tenir le go ou no-go du 16. Si l'option A n'est pas livrée le 19 octobre, bascule sur l'option B sans changer l'archive : seule la colonne utilisée change (`piece_id_cite` ou `piece_id_saisi`).
-
-**Coût de se tromper.** A choisie et non livrée : J09b glisse ; le repli B coûte du temps de comptable (non chiffrable avant J04b). B choisie à tort : saisie double pendant trois exercices et liens fragiles.
-
-### ADR-05 — Détection des doublons
-
-**Contexte.** Une même pièce peut arriver deux fois : même fichier envoyé deux fois (lot relancé), ou même papier numérisé deux fois (deux fichiers différents octet par octet). L'empreinte SHA-256 ne détecte que le premier cas.
-
-| Option | Détecte | Limite |
+| Option | Description | Limites |
 |---|---|---|
-| 1. Empreinte SHA-256 du fichier, bloquante | Fichier identique | Ne voit pas un second scan du même papier |
-| 2. Clé métier (type, tiers normalisé, date, montant, numéro du document chez le tiers), bloquante | Second scan du même papier | Faux positifs : deux reçus réels identiques le même jour |
-| 3. Empreinte d'image perceptuelle ou lecture du texte | Scans proches | Outils à installer ; IA ou OCR hors périmètre du MVP |
+| A. L'ERP enregistre `piece_id` sur chaque écriture | Refus à la saisie sans identifiant ; lien vers la pièce | Code de l'ERP non vu ; ERP pas en ligne |
+| B. **Rapprochement par CSV** | Écritures importées ; le comptable relie chaque écriture dans NocoDB | Pas de refus à la saisie dans l'ERP (REC-045 tenu seulement en option A) ; travail du comptable |
 
-**Recommandation : option 1 bloquante + option 2 en avertissement.** L'empreinte est unique en base (`pieces.empreinte_sha256`) ; un fichier déjà connu n'ouvre pas de nouvelle pièce (il est noté `Doublon_exact` dans `fichiers_deposes`). La clé métier ne bloque pas : la vue « À valider » affiche les doublons probables et le valideur décide (rejet ou validation avec commentaire). L'empreinte sert aussi au contrôle d'intégrité (fichier modifié après rangement).
+**Recommandation : démarrer en option B (Défaut D2)**, même format CSV pour les deux (§7.2) ; option A visée pour le mercredi 21 octobre ; date unique de bascule : si A n'est pas prête le 21, B reste jusqu'au 31. Quand A arrive, `piece_id_cite` l'emporte sur `piece_id_saisi` et toute différence devient l'écart E12. **Coût de se tromper** : A imposée et non livrée = J09b bloqué ; B seule = saisie double.
 
-**Coût de se tromper.** Doublon non vu : deux identifiants pour une seule pièce, une écriture comptée deux fois au contrôle d'échantillon ; corrigeable par annulation d'un des deux identifiants. Blocage à tort sur la clé métier : pièce réelle refusée, plus grave ; d'où l'avertissement seulement.
+### ADR-05 — Doublons
+Empreinte SHA-256 **bloquante** (un fichier connu ne crée pas de pièce) ; clé métier (type, tiers normalisé, date, montant, numéro du document) en **avertissement** dans la vue « À valider », le valideur décide ; pas d'empreinte d'image ni de lecture de texte (outillage, hors MVP). Coût : un doublon non vu se corrige par annulation ; un blocage à tort refuserait une pièce réelle.
 
-### ADR-06 — Intelligence artificielle optionnelle
-
-**Contexte.** IA externe non autorisée à ce jour (fiche §8). Le système doit fonctionner sans.
-
-| Option | Description |
-|---|---|
-| 1. **Aucune IA dans le MVP** ; champs de proposition prévus dans le schéma | Tout est saisi par l'humain ; les champs `proposition_*` restent vides |
-| 2. Lecture de texte locale (OCR sur le serveur) | Données restant sur le serveur ; outil à installer et à évaluer ; qualité inconnue sur les reçus manuscrits |
-| 3. Extraction par un service d'IA externe | Gain de temps possible ; données comptables sortant de l'entreprise ; décision de la Direction requise (J19) |
-
-**Recommandation : option 1 pour le 31 octobre.** Paramètre `ia_extraction_active = faux`. Si la Direction l'autorise plus tard, un workflow W12 remplit seulement les champs `proposition_*` et `source_proposition` ; l'IA n'attribue jamais d'identifiant, ne change jamais de statut et ne valide rien ; la saisie humaine reste obligatoire. Coupure de l'option = passer le paramètre à faux, sans autre changement.
-
-**Coût de se tromper.** Faible tant que l'option reste désactivée. Activée sans décision : fuite de données comptables et personnelles (risque du programme §9).
+### ADR-06 — Intelligence artificielle
+**Aucune IA d'ici le 31 octobre** ; paramètre `ia_extraction_active = faux`, modifiable seulement par migration, **et** variable d'environnement de n8n : deux clés pour activer. Si la Direction l'autorise (J19, D14) : préférer une lecture de texte locale ; pour un service externe, exclure `7_Paie`, `8_Fiscal`, `9_Contrats`, n'envoyer que la première page, contrat de traitement et engagement de non-réutilisation des données, avis juridique sur la protection des données au Congo (à confirmer). L'IA ne remplit que `proposition_ia`, n'attribue rien et ne valide rien ; aucun workflow de l'archive n'utilise les identifiants d'IA du site (ARC-041).
 
 ## 4. Modèle de données
 
-Toutes les tables sont dans la base PostgreSQL `archive_compta` (ADR-01) et affichées dans NocoDB. Type NocoDB = type d'affichage réglé dans NocoDB au-dessus du type PostgreSQL. Aucun montant décimal : FCFA entiers. Horodatage en `timestamptz`, affiché en Africa/Brazzaville.
+Base `archive_compta`. Montants entiers en FCFA. Horodatages `timestamptz`, affichés en Africa/Brazzaville. Capacités d'affichage de NocoDB sur source externe (liens, vues, types) : à vérifier sur la version installée (ARC-002).
 
-### 4.1 Table `pieces` (une ligne par pièce, jamais supprimée)
+### 4.1 Table `pieces` (jamais supprimée)
 
 | Champ | Type PG → NocoDB | Oblig. | Contrainte | Exemple |
 |---|---|---|---|---|
-| `id` | bigint identité → ID | oui | clé technique | 4812 |
-| `id_piece` | text → SingleLineText | dès `Classement_en_cours` ou `Manquante` | unique ; format `^FT-PC-[0-9]{4}-[0-9]{5}$` ; non modifiable une fois écrit ; écrit seulement par `attribuer_id_piece` | FT-PC-2025-00017 |
-| `statut` | text → SingleSelect | oui | liste §4.3 ; transitions contrôlées par déclencheur | Classee |
-| `date_piece` | date → Date | dès `A_valider` | entre le 1er janvier de la plus ancienne année ouverte et aujourd'hui | 2025-03-14 |
-| `type_piece` | text → Links vers `types_piece` | dès `A_valider` | code existant et actif | 1_Factures-fournisseurs |
-| `tiers` | text → SingleLineText | dès `A_valider` | 2 à 80 caractères | SOCOFER SARL |
-| `numero_doc_tiers` | text → SingleLineText | non | numéro de facture ou de reçu chez le tiers | F-2025-0331 |
-| `montant_fcfa` | bigint → Number | dès `A_valider` | entier ≥ 0 (0 admis pour un contrat sans montant) | 450000 |
+| `id` | bigint identité → ID | oui | clé technique ; sert à `/apercu/<n>` | 4812 |
+| `id_piece` | text | dès `Classee` ou `Manquante` | unique ; format ADR-03 ; écrit seulement par fonction | FT-PC-2025-00017 |
+| `statut` | text → SingleSelect | oui | `A_trier`, `A_valider`, `Classee`, `Manquante`, `Rejetee`, `Annulee`, `Fusionnee` (§4.3) | Classee |
+| `date_piece` | date | dès `A_valider` | bornée par déclencheur (§4.4) | 2025-03-14 |
+| `date_estimee` | boolean → Checkbox | non | vrai si la date n'est pas lisible et a été reconstituée (Défaut D4) | faux |
+| `type_piece` | text → Links `types_piece` | dès `A_valider` | type actif | 1_Factures-fournisseurs |
+| `tiers` | text | dès `A_valider` | 2 à 80 caractères ; ne commence pas par `= + - @` ; normalisé non vide | SOCOFER SARL |
+| `tiers_recherche` | text (calculé) | — | minuscules sans accents, pour la recherche | socofer sarl |
+| `numero_doc_tiers` | text | non | — | F-2025-0331 |
+| `montant_fcfa` | bigint → Number | dès `A_valider` sauf si `sans_montant` | entier ≥ 0 ; vide si `sans_montant` | 450000 |
+| `sens` | text → SingleSelect | oui | Normal, Avoir (Défaut D4) | Normal |
+| `sans_montant` | boolean | oui | vrai = pièce sans montant (distinct de 0) (Défaut D4) | faux |
 | `nature_justificatif` | text → SingleSelect | oui | Original, Duplicata, Attestation interne | Original |
-| `empreinte_sha256` | char(64) → SingleLineText | si un fichier existe | unique ; 64 caractères hexadécimaux ; non modifiable | 9f2c…e1 |
-| `taille_octets` | bigint → Number | si fichier | > 0 | 284113 |
-| `lot_id` | bigint → Links vers `lots_depot` | si déposée | — | LOT-20261014-0930-P1 |
-| `nom_fichier_origine` | text → SingleLineText | si déposée | — | scan_0042.pdf |
-| `chemin` | text → SingleLineText | dès `Classee` | relatif à la racine ; écrit par le système seul | Archive/2025/1_Factures-fournisseurs/03_Mars/ |
-| `nom_fichier` | text → SingleLineText | dès `Classee` | règle de nommage §4.6 ; écrit par le système seul | 2025-03-14_FT-PC-2025-00017_facture-fournisseur_socofer-sarl_450000.pdf |
-| `lien_fichier` | vue calculée → URL | — | adresse Nginx authentifiée | https://archive.…/fichiers/Archive/2025/… |
-| `trie_par`, `date_tri` | text, timestamptz → SingleLineText, DateTime | dès `A_valider` | nom choisi dans la liste des utilisateurs | Aide au tri 1 |
-| `decision_validation` | text → SingleSelect | non | vide, Valider, Renvoyer | Valider |
-| `valide_par`, `date_validation` | text, timestamptz | si décision | `valide_par` ≠ `trie_par` (quatre yeux) | Comptable |
-| `motif` | text → LongText | si renvoi, rejet, annulation | non vide | Montant illisible |
-| `ref_ecriture` | text → SingleLineText | non | tenu par le système : clés des écritures qui citent la pièce | AC-2025-000231 |
-| `controle_par`, `date_controle` | text, timestamptz | dès `Controlee` | `controle_par` ≠ `trie_par` | Resp. validation |
-| `remplace_par` | text → SingleLineText | si annulée pour réattribution | `id_piece` existant | FT-PC-2024-00102 |
-| `date_fin_conservation` | date → Date | non | calculée si `duree_conservation_ans` est confirmée, sinon vide | (vide) |
-| `proposition_ia`, `source_proposition` | jsonb, text → JSON, SingleLineText | non | rempli seulement si l'option IA est active | (vide) |
-| `version` | integer → Number | oui | incrémentée à chaque mise à jour (détection des modifications concurrentes) | 4 |
-| `cree_le`, `modifie_le` | timestamptz → CreatedTime, LastModifiedTime | oui | posés par la base | 2026-10-14 09:42 |
+| `empreinte_sha256` | char(64) | si fichier | unique hors `Fusionnee` ; non modifiable par personne une fois posée | 9f2c…e1 |
+| `taille_octets` | bigint | si fichier | > 0 ; non modifiable une fois posée | 284113 |
+| `lot_id` | bigint → Links `lots_depot` | si déposée | — | — |
+| `chemin`, `nom_fichier` | text | dès `Classee` (sauf manquante sans justificatif) | calculés par fonction (§4.7) | Archive/2025/1_Factures-fournisseurs/03_Mars/ |
+| `trie_par`, `date_tri` | text, timestamptz | dès `A_valider` | compte NocoDB réel si disponible, sinon nom déclaré (Défaut D7) | Aide au tri 1 |
+| `pris_par` | text | non | personne qui a la pièce en cours de tri (parade RS-25) | Aide au tri 1 |
+| `decision`, `motif_decision` | text | non | vide, Valider, Renvoyer, Rejeter ; motif obligatoire sauf Valider | Valider |
+| `valide_par`, `date_validation` | text, timestamptz | dès `Classee` | ≠ `trie_par` (§4.3) | Comptable |
+| `remplace_par` | text | non | identifiant de la pièce qui la remplace (changement d'année) | — |
+| `fusionnee_dans` | bigint → Links `pieces` | si `Fusionnee` | pièce manquante qui a reçu ce fichier | — |
+| `date_fin_conservation` | date | non | vide tant que la durée n'est pas confirmée (D14) | — |
+| `proposition_ia` | jsonb | non | vide tant que l'IA est désactivée | — |
+| `version` | integer | oui | +1 à chaque mise à jour | 4 |
+| `cree_le`, `modifie_le` | timestamptz | oui | posés par la base | — |
+
+La vue `v_pieces` ajoute, sans les stocker : `saisie` (au moins une écriture présente au dernier import la cite), `refs_ecritures` (toutes les écritures qui la citent : une pièce peut être citée par plusieurs lignes, par exemple facture et règlement ; une ligne cite une seule pièce), `controlee` (dernier contrôle de `controles_pieces` positif), `libelle_fiche` (« À trier », « Classée », « Saisie dans l'ERP », « Contrôlée », « Manquante », etc.), `lien` (`/piece/<id_piece>`).
 
 ### 4.2 Autres tables
 
-**`lots_depot`** — un envoi depuis le poste de numérisation.
+| Table | Rôle | Champs principaux (contraintes) |
+|---|---|---|
+| `lots_depot` | Un envoi du poste | `code_lot` unique, format `^LOT-[0-9]{8}-[0-9]{4}-[A-Z0-9]{1,8}$` ; `empreinte_manifeste` ; `nb_annonces`, `nb_nouveaux`, `nb_doublons`, `nb_rejetes` ; `statut` (Recu, En_ingestion, Ingere, Ingere_avec_ecarts, Erreur) ; `tentatives` ; `modifie_le` |
+| `fichiers_deposes` | Un fichier d'un lot (insertion seule) | `lot_id` ; `nom_origine` (texte affiché, jamais utilisé dans un chemin) ; `empreinte_sha256` ; `taille` ; `resultat` (Nouveau, Doublon_exact, Rejete_format, Rejete_taille, Rejete_transfert) ; `piece_id` ; unique (lot, nom) |
+| `compteurs` | Un compteur par année | `annee` (clé, 2000–2100) ; `dernier` (0–99999, écrit par fonction seulement) |
+| `types_piece` | Référentiel | `code` (`^[0-9]{1,2}_[A-Za-z-]{1,40}$`) ; `libelle` ; `code_nom_fichier` (`^[a-z0-9-]{1,30}$`) ; `prioritaire` ; `actif`. `7_Paie` reste **inactif** tant que la restriction d'accès par type n'existe pas (SEC-24, ARC-040) |
+| `parametres` | Réglages (modifiés par migration seulement) | `annees_ouvertes` (Défaut D3 : exercices 2024–2026, dates de pièce admises dès 2023-01-01 pour les pièces qui justifient les soldes d'ouverture 2024), `debut_exercice` (01-01, Défaut D3), `noms_mois` (`^[0-9]{2}_[A-Za-z]{3,10}$`, sans accents, Défaut D12), `prefixe_identifiant` (FT-PC ; FT-TS en test), `attribution_suspendue`, `ia_extraction_active`, `taille_max_fichier_mo` (20, Défaut D4), `delai_e04_jours` (7 ; 0 pour J14), `seuil_import_confirmation` (50 pièces) |
+| `inventaire` | Inventaire J02 (RS-08) | `exercice`, `type_piece`, `nb_attendu` (≥ 0), `source`, `saisi_par`, `date` ; unique (exercice, type) |
+| `plan_avancement` | Plan recalculé à J06c (RS-24) | `semaine`, `exercice`, `type_piece`, `nb_prevu` |
+| `declarations_manquantes` | Cible du formulaire « Déclarer une pièce manquante » (RS-09) | `exercice`, `type_piece`, `tiers`, `date_estimee`, `montant_estime`, `description`, `motif` (Perdue, Jamais reçue, Détériorée, Autre), `traitement` (Duplicata demandé, Attestation interne), `declare_par`, `confirme_doublon` (booléen), `statut` (A_traiter, Traitee, Refusee), `piece_id` (posé par la fonction), `code_refus` |
+| `pieces_manquantes` | Suivi du traitement | `piece_id` unique ; `declaration_id` ; `date_demande`, `date_relance` ; `attestation_signee_par` (Direction), `date_signature` ; `statut_traitement` (Ouvert, Duplicata reçu, Attestation signée, Clos) |
+| `demandes` | Décisions humaines hors tri (une ligne par demande) | `type` (Rattacher_justificatif, Corriger, Annuler, Reouvrir_rejet), `piece_id`, `piece_deposee_id` (rattachement), `champ`, `nouvelle_valeur`, `motif` (obligatoire), `demande_par`, `statut` (A_traiter, Appliquee, Refusee), `code_refus` |
+| `pieces_versions` | Version d'une pièce avant correction (RS-19, insertion seule) | `piece_id`, `version`, `donnees` (jsonb), `ancien_chemin`, `ancien_nom`, `motif`, `auteur`, `horodatage` |
+| `controles_pieces` | Contrôle d'échantillon (insertion seule) | `piece_id`, `controle_par`, `date`, `resultat` (Conforme, Non_conforme, Reouvert), `commentaire` ; `controle_par` ≠ `trie_par` et ≠ `saisi_par` des écritures (Défaut D10) |
+| `ecritures` | Lignes importées | `source` (ERP, EXCEL) ; `exercice` ; `journal` ; `numero_ecriture` ; `ligne` ; `date_ecriture` ; `compte` (`^[0-9]{2,12}$`) ; `libelle` (≤ 200 caractères) ; `debit_fcfa`, `credit_fcfa` (entiers ≥ 0, un seul non nul) ; `saisi_par` ; `piece_id_cite` (option A) ; `piece_id_saisi` (option B, seulement une pièce `Classee` ou `Manquante`) ; `motif_piece_manquante` (informatif seulement) ; `import_id` ; `presente_dernier_import`. Clé naturelle unique (source, exercice, journal, numéro, ligne) |
+| `ecritures_import_brut` | Zone de chargement d'un CSV avant application | mêmes colonnes en texte + `import_id` |
+| `imports_ecritures` | Un fichier CSV | `nom_fichier`, `empreinte_sha256`, `depose_par` (compte SFTP « imports »), `source`, `exercice`, `nb_lignes`, `nb_inserees`, `nb_mises_a_jour`, `nb_disparues`, `statut` (Recu, A_confirmer, Importe, Rejete), `motif_rejet`. Empreinte unique parmi les imports `Importe` seulement |
+| `sources_exercice` | Une seule source d'écritures par exercice (RS-13) | `exercice` clé, `source` ; changement par fonction d'administration |
+| `comptes_bancaires` | Comptes de banque (Défaut D8) | `compte_comptable`, `banque`, `libelle` |
+| `rapprochements_bancaires` | Critère 7 (Défaut D8) | `compte_bancaire`, `exercice`, `mois`, `solde_releve_fcfa` (saisi), `piece_releve` (lien vers une pièce `5_Banque`), `piece_etat_rapprochement` (état détaillé du comptable, lien), `statut` (Brouillon, Releve_manquant, Rapproche, Ecart_explique) ; `Rapproche` refusé si `piece_releve` est vide ou si l'écart n'est pas nul ; `etabli_par` ≠ `valide_par`. Le solde comptable et l'écart sont calculés dans `v_rapprochements` à partir des écritures |
+| `ecarts_acceptes` | Écarts acceptés et documentés (J15) | `code_ecart`, `objet`, `commentaire` obligatoire, `accepte_par` (responsable de validation), `date` |
+| `refus` | Refus métier consignés par les fonctions (insertion seule) | `fonction`, `objet`, `code_refus`, `acteur`, `horodatage` |
+| `resultats_integrite` | Résultats de H5 | `objet`, `code` (FICHIER_ABSENT, EMPREINTE_DIFFERENTE, FICHIER_SANS_PIECE, LIEN_ABSENT, REGISTRE_DIFFERENT), `detail`, `horodatage` |
+| `journal_audit` | Journal en ajout seul, chaîné | `id`, `horodatage`, `acteur_db`, `acteur_humain`, `table_nom`, `enregistrement_id`, `action`, `avant`, `apres`, `execution_n8n`, `empreinte_precedente`, `empreinte` = SHA-256(`empreinte_precedente` + contenu canonique) |
+| `erreurs_workflow` | File d'erreurs (US-SYS-08) | `horodatage`, `workflow`, `execution_id`, `noeud`, `code` (jamais de chemin, de tiers ni de montant), `objet_ref` (identifiant technique), `tentatives`, `statut` |
 
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `code_lot` | text → SingleLineText | oui | unique ; `LOT-AAAAMMJJ-HHMM-POSTE` | LOT-20261014-0930-P1 |
-| `poste`, `depose_par` | text | oui | — | P1, Aide au tri 1 |
-| `nb_annonces` | integer → Number | oui | lignes du manifeste | 48 |
-| `nb_nouveaux`, `nb_doublons`, `nb_rejetes` | integer → Number | oui | somme = `nb_annonces` une fois ingéré | 46, 1, 1 |
-| `statut` | text → SingleSelect | oui | Recu, En_ingestion, Ingere, Ingere_avec_ecarts, Erreur | Ingere_avec_ecarts |
-| `recu_le`, `ingere_le` | timestamptz → DateTime | oui / non | — | — |
+### 4.3 Cycle de vie de la pièce
 
-**`fichiers_deposes`** — un fichier d'un lot, pour le compteur du lot et la traçabilité des doublons.
-
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `lot_id` | bigint → Links | oui | — | — |
-| `nom_origine` | text | oui | unique dans le lot | scan_0042.pdf |
-| `empreinte_sha256` | char(64) | oui | — | — |
-| `resultat` | text → SingleSelect | oui | Nouveau, Doublon_exact, Rejete_format, Rejete_transfert | Doublon_exact |
-| `piece_id` | bigint → Links vers `pieces` | si Nouveau ou Doublon_exact | pièce créée ou pièce déjà existante | 4812 |
-
-**`compteurs`** — un compteur par année.
-
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `annee` | integer → Number | oui | clé ; entre 2000 et 2100 | 2025 |
-| `dernier` | integer → Number | oui | 0 à 99999 ; ne diminue jamais ; écrit seulement par la fonction | 17 |
-| `modifie_le` | timestamptz | oui | — | — |
-
-Affichée en lecture seule dans NocoDB.
-
-**`types_piece`** — référentiel (fiche §4).
-
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `code` | text | oui | clé ; nom du dossier | 2_Recus-de-caisse |
-| `libelle` | text | oui | — | Reçu de caisse |
-| `code_nom_fichier` | text | oui | minuscules, chiffres, tirets | recu-caisse |
-| `prioritaire`, `actif` | boolean → Checkbox | oui | — | vrai, vrai |
-
-**`ecritures`** — lignes d'écritures importées (§7). Clé naturelle unique : `source` + `exercice` + `journal` + `numero_ecriture` + `ligne`.
-
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `source` | text → SingleSelect | oui | ERP, EXCEL, AUTRE | ERP |
-| `exercice` | integer | oui | année ouverte | 2025 |
-| `journal` | text | oui | VT, AC, BQ, CA ou autre code de l'export | AC |
-| `numero_ecriture`, `ligne` | text, integer | oui | — | 000231, 1 |
-| `date_ecriture` | date | oui | dans l'exercice | 2025-03-15 |
-| `compte` | text | oui | chiffres (plan SYSCOHADA) | 401100 |
-| `libelle` | text → LongText | non | — | Facture SOCOFER |
-| `debit_fcfa`, `credit_fcfa` | bigint | oui | entiers ≥ 0 ; un seul des deux non nul | 450000, 0 |
-| `piece_id_cite` | text | non | valeur exportée par l'ERP (option A) ; jamais modifiée dans NocoDB | FT-PC-2025-00017 |
-| `piece_id_saisi` | text → Links vers `pieces` | non | saisi dans NocoDB (option B) ; conservé à chaque réimport | — |
-| `motif_piece_manquante` | text | non | si aucune pièce citée | — |
-| `import_id` | bigint → Links vers `imports_ecritures` | oui | dernier import qui l'a vue | — |
-| `presente_dernier_import` | boolean → Checkbox | oui | faux si l'écriture a disparu de l'export | vrai |
-
-**`imports_ecritures`** : `nom_fichier`, `empreinte_sha256` (unique : un même fichier n'est jamais importé deux fois), `source`, `exercice`, `nb_lignes`, `nb_inserees`, `nb_mises_a_jour`, `nb_disparues`, `statut` (Recu, Importe, Rejete), `importe_le`, `motif_rejet`.
-
-**`pieces_manquantes`** — traitement d'une pièce déclarée manquante ; la pièce elle-même est une ligne `pieces` au statut `Manquante`, avec un identifiant.
-
-| Champ | Type → NocoDB | Oblig. | Contrainte | Exemple |
-|---|---|---|---|---|
-| `piece_id` | bigint → Links vers `pieces` | oui | unique | — |
-| `description` | text → LongText | oui | ce qui manque | Facture carburant mars |
-| `motif` | text → SingleSelect | oui | Perdue, Jamais reçue, Détériorée, Autre | Perdue |
-| `traitement` | text → SingleSelect | oui | Duplicata demandé, Attestation interne | Duplicata demandé |
-| `date_demande`, `date_relance` | date | selon traitement | — | 2026-10-15 |
-| `attestation_signee_par`, `date_signature` | text, date | si attestation | Direction seulement | DG |
-| `statut_traitement` | text → SingleSelect | oui | Ouvert, Duplicata reçu, Attestation signée, Clos | Ouvert |
-
-**`controles`** (une exécution de contrôle) : `type_controle`, `declenche_par`, `perimetre_exercice`, `debut`, `fin`, `nb_verifies`, `nb_ecarts`, `statut` (En_cours, Termine, Echec), `rapport` (LongText ou lien).
-
-**`ecarts`** (une anomalie) : `controle_id`, `code_ecart` (§5, W06), `objet` (identifiant de pièce ou clé d'écriture), `detail`, `responsable`, `date_limite`, `statut` (Ouvert, Corrige, Accepte_documente), `resolu_par`, `commentaire`. Unicité sur (`code_ecart`, `objet`) tant que le statut est Ouvert : un contrôle rejoué ne recrée pas l'écart.
-
-**`rapprochements_bancaires`** (critère 7, US-ARC-07) : `compte_bancaire`, `exercice`, `mois`, `solde_releve_fcfa`, `solde_comptable_fcfa`, `ecart_fcfa` (calculé), `piece_releve` (lien vers la pièce `5_Banque`), `etabli_par`, `valide_par` (≠ `etabli_par`), `statut` (Brouillon, Rapproche, Ecart_explique).
-
-**`journal_audit`** (ajout seul) : `id` (bigint identité), `horodatage` (posé par la base), `acteur_db` (utilisateur PostgreSQL : `arch_nocodb` ou `arch_n8n`), `acteur_humain` (nom transmis par NocoDB ou n8n, voir §8.1), `table_nom`, `enregistrement_id`, `action` (INSERT, UPDATE, STATUT, ATTRIBUTION, RANGEMENT, IMPORT, CONTROLE), `avant` et `apres` (jsonb), `execution_n8n`. Écrit par déclencheurs sur toutes les tables métier. Aucun droit UPDATE ni DELETE accordé ; un déclencheur refuse aussi ces opérations. Option après le 31 octobre : chaîner chaque ligne à l'empreinte de la précédente pour rendre toute altération visible.
-
-**`parametres`** : `cle` (unique), `valeur`, `description`, `modifie_par`, `modifie_le`. Clés initiales : `racine_archive`, `noms_mois` (01_Janvier … 12_Decembre, sans accents : **à figer à J04**), `annees_ouvertes` (**à confirmer** : 2023 à 2025 ou 2024 à 2026), `debut_exercice` (01-01, Hypothèse), `duree_conservation_ans` (vide tant que non confirmée), `ia_extraction_active` (faux), `alerte_destinataires`, `seuil_disque_pct` (80), `taille_max_fichier_mo` (à fixer après les 50 pièces d'essai), `delai_relance_duplicata_jours` (à fixer).
-
-**`erreurs_workflow`** (file d'erreurs, US-SYS-08) : `horodatage`, `workflow`, `execution_id`, `noeud`, `message` (sans donnée personnelle ni montant), `objet_ref` (code de lot, `id` de pièce, nom d'import), `tentatives`, `statut` (Nouvelle, En_reprise, Resolue, Abandonnee), `resolu_par`, `commentaire`.
-
-**Vues SQL en lecture seule** affichées dans NocoDB (affichage des vues PostgreSQL : à vérifier sur la version installée) : `v_tableau_bord` (compteurs par statut, année et type, comparés au plan), `v_doublons_probables`, `v_ecritures_sans_piece`, `v_pieces_saisies_sans_ecriture`, `v_trous_numerotation`, `v_echantillon` (tirage aléatoire reproductible par graine).
-
-### 4.3 Machine d'états de la pièce
+Statut stocké = cycle de vie uniquement. « Saisie dans l'ERP » et « Contrôlée » sont calculées (§4.1) : une pièce contrôlée dont l'écriture disparaît reste visible dans E03 ; une pièce manquante citée reste `Manquante`.
 
 ```
-              (W01)                 (AT/CPT)               (CPT/RV : Valider)
-  [dépôt] ----------> A_trier ------------------> A_valider -----------------+
-                        |  ^                         |                        |
-           (CPT/RV)     |  +---- Renvoyer (CPT/RV) --+                        v (SYS, W02)
-                        v                                          Classement_en_cours
-                     Rejetee                                                 | (SYS, fichier vérifié)
-                                                                             v
-  [déclaration] --(SYS, W04)--> Manquante --(SYS : duplicata ou attestation)--> Classee
-                                    |                                       |   ^
-                                    |                       (SYS, W05/W06)  v   | (SYS : écriture disparue)
-                                    |                                  Saisie_ERP
-                                    |                                       |   ^
-                                    |                              (RV)     v   | (RV : réouverture, motif)
-                                    |                                   Controlee
-                                    +---(RV, motif, aucune écriture)---> Annulee <--(RV)-- Classee
+ [dépôt] -W01-> A_trier --T2--> A_valider --T6 (W02 : valider_piece)--> Classee --T9--> Annulee
+                  ^  |  ^           |                                     |   ^
+          T5 (RV) |  |  +--T3-------+  (Renvoyer)                         |   | T8 rattacher_justificatif
+                  |  v                                                    |   |
+                 Rejetee <---T4 (Rejeter, depuis A_trier ou A_valider)    |  Manquante <--T7-- [déclaration]
+                                                                          |      |
+ A_valider (pièce déposée comme justificatif) --T8--> Fusionnee           |      +--T9--> Annulee
 ```
 
-| N° | De → vers | Qui | Condition (vérifiée par déclencheur ou workflow) |
-|---|---|---|---|
-| T1 | (création) → `A_trier` | Système (W01) | Empreinte nouvelle, fichier PDF lisible |
-| T2 | `A_trier` → `A_valider` | Aide au tri, comptable | Date, type, tiers, montant, `trie_par` renseignés |
-| T3 | `A_valider` → `A_trier` | Comptable, responsable de validation | `decision_validation` = Renvoyer et motif |
-| T4 | `A_trier` → `Rejetee` | Comptable, responsable de validation | Motif (illisible, plusieurs pièces dans un fichier, pas une pièce comptable) ; pas d'identifiant |
-| T5 | `A_valider` → `Classement_en_cours` | Système (W02) seul | `decision_validation` = Valider ; `valide_par` ≠ `trie_par` ; identifiant attribué par la fonction |
-| T6 | `Classement_en_cours` → `Classee` | Système (W02) seul | Fichier écrit à son chemin définitif, empreinte relue identique |
-| T7 | (déclaration) → `Manquante` | Système (W04) seul | Fiche `pieces_manquantes` complète ; identifiant attribué |
-| T8 | `Manquante` → `Classee` | Système (W02) seul | Duplicata déposé et validé (même identifiant, `nature_justificatif` = Duplicata) ou attestation signée déposée et validée (`nature_justificatif` = Attestation interne) |
-| T9 | `Classee` ou `Manquante` → `Saisie_ERP` | Système (W05) seul | Au moins une écriture présente au dernier import cite la pièce |
-| T10 | `Saisie_ERP` → `Classee` | Système (W05) seul | Plus aucune écriture ne la cite ; écart créé |
-| T11 | `Saisie_ERP` → `Controlee` | Responsable de validation | Aucun écart ouvert sur la pièce ; `controle_par` ≠ `trie_par` |
-| T12 | `Controlee` → `Saisie_ERP` | Responsable de validation | Motif de réouverture |
-| T13 | `Classee` ou `Manquante` → `Annulee` | Responsable de validation | Motif ; aucune écriture ne la cite ; le numéro n'est jamais réutilisé |
-| T14 | `Classee`, `Saisie_ERP` ou `Controlee` → `Classement_en_cours` | Système (déclencheur) | Correction de date (même année), tiers, type ou montant d'une pièce classée ; W02 recalcule nom et chemin |
+| N° | Transition | Qui | Par | Condition |
+|---|---|---|---|---|
+| T1 | création → `A_trier` | Système | W01, fonction `enregistrer_fichier` | Fichier PDF valide, empreinte nouvelle |
+| T2 | `A_trier` → `A_valider` | Aide au tri, comptable | NocoDB (déclencheur) | Date, type, tiers, montant (ou `sans_montant`), `trie_par` |
+| T3 | `A_valider` → `A_trier` | Comptable, RV | W02 | Décision Renvoyer + motif |
+| T4 | `A_trier`/`A_valider` → `Rejetee` | Comptable, RV | W02 | Décision Rejeter + motif ; pas d'identifiant |
+| T5 | `Rejetee` → `A_trier` | RV | W02 (`demandes` Reouvrir_rejet) | Motif |
+| T6 | `A_valider` → `Classee` | Comptable, RV (≠ trieur) | W02, `valider_piece` | ADR-03 ; quatre yeux |
+| T7 | déclaration → `Manquante` | Comptable | W02, `declarer_piece_manquante` | §4.4 |
+| T8 | `Manquante` → `Classee` et pièce déposée `A_valider` → `Fusionnee` | Comptable (≠ trieur du justificatif) | W02, `rattacher_justificatif` | Justificatif trié ; même année, sinon T9 + nouvelle pièce avec `remplace_par` (Défaut D11) |
+| T9 | `Classee`/`Manquante` → `Annulee` | RV | W02 (`demandes` Annuler) | Motif ; aucune écriture ne la cite ; numéro jamais réutilisé |
 
-Mise en œuvre : NocoDB se connecte avec l'utilisateur PostgreSQL `arch_nocodb`, n8n avec `arch_n8n`. Le déclencheur `controle_transition` lit `current_user` : les transitions « Système seul » sont refusées si elles viennent de `arch_nocodb`. Les humains ne choisissent donc jamais eux-mêmes `Classee` ou `Saisie_ERP`. La distinction entre aide au tri, comptable et responsable de validation, elle, repose sur les droits de NocoDB et sur les vues (§6), plus le contrôle « quatre yeux » sur les noms ; elle n'est pas garantie par la base (voir risques §10).
+Corrections d'une pièce classée (date dans la même année, type, tiers, montant) : demande `Corriger` par le comptable, appliquée par la fonction `corriger_piece` réservée au responsable de validation (Défaut D11) : copie dans `pieces_versions`, recalcul du nom et du chemin, l'ancien lien est déplacé par H2 dans `fichiers/_versions/<id_piece>/` ; l'objet et l'empreinte ne changent jamais.
 
-Modification des informations d'une pièce déjà classée (erreur de tiers, de montant ou de date) : le comptable corrige dans la vue « Corrections » ; le déclencheur repasse la pièce en `Classement_en_cours` (T14) et W02 recalcule le nom et le chemin, copie le fichier, vérifie l'empreinte ; l'identifiant ne change pas. Exception : si la correction change l'année de `date_piece`, l'identifiant (qui porte l'année) n'est plus cohérent ; règle proposée, **à confirmer à J04** : annulation (T13) et nouvelle pièce, reliées par `remplace_par`. Pour une pièce déjà `Saisie_ERP` ou `Controlee`, la correction est réservée au responsable de validation ; le statut est recalculé par W05 à l'import suivant.
+**Quatre yeux (SEC-04, RS-06, Défaut D7).** W02 n'utilise pas les noms saisis s'il peut lire le compte NocoDB réel (champs système « créé par / modifié par » ou journal d'activité de NocoDB : à vérifier, ARC-002) ; il compare le compte qui a fait T2 au compte qui a posé la décision ; égalité → décision effacée, refus consigné. Si la version ne le permet pas : `trie_par` et `valide_par` restent déclaratifs, la vue de l'aide au tri ne montre pas les champs de décision, une vue signale les pièces validées moins d'une heure après leur tri, l'échantillon de contrôle surpondère ces pièces, et la Direction signe le risque résiduel (D7).
 
-### 4.4 Règles d'intégrité portées par la base
+### 4.4 Fonctions et règles d'intégrité
 
-- Aucune suppression sur `pieces`, `compteurs`, `journal_audit`, `ecritures`, `imports_ecritures`, `lots_depot`, `fichiers_deposes` : droit DELETE non accordé et déclencheur de refus.
-- `id_piece`, `empreinte_sha256`, `chemin`, `nom_fichier` modifiables uniquement par `arch_n8n` (déclencheur).
-- Champs obligatoires par statut contrôlés par déclencheur (pas seulement par le formulaire NocoDB).
-- Toute mise à jour incrémente `version` et écrit une ligne `journal_audit`.
+Fonctions `SECURITY DEFINER`, propriété du rôle `arch_fonctions` (sans connexion), `search_path` fixé, paramètres typés :
 
-### 4.5 Arborescence sur disque
+| Fonction | Appelée par | Effet en une transaction |
+|---|---|---|
+| `enregistrer_lot`, `enregistrer_fichier` | W01 | Lot et fichier ; pièce `A_trier` si empreinte nouvelle ; `Doublon_exact` seulement si l'empreinte appartient à une pièce d'un **autre** lot ; fichier déjà traité dans ce lot = sauté |
+| `valider_piece`, `renvoyer_piece`, `rejeter_piece` | W02 | ADR-03 ; T3, T4 |
+| `declarer_piece_manquante(declaration_id)` | W02 | Refus si une déclaration ou pièce de même clé métier existe et que `confirme_doublon` est faux (RS-23) ; sinon crée la pièce `Manquante` avec identifiant (année de la date estimée), `pieces_manquantes`, relie la déclaration ; rejeu = même identifiant |
+| `rattacher_justificatif(demande_id)` | W02 | Pièce déposée → `Fusionnee` ; pièce manquante reçoit empreinte, taille, nature, nom, chemin → `Classee` ; une empreinte vide reçoit une valeur une seule fois (pas d'exception à l'immuabilité) |
+| `corriger_piece`, `annuler_piece`, `reouvrir_rejet` | W02 | Version, T9, T5 |
+| `appliquer_import(import_id)` | W05 | §5.1 W05 |
+| `reintegrer_piece`, `recaler_compteurs`, `changer_source_exercice` | Administrateur (rôle `arch_admin`) | Recalage §8.7 ; journalisés |
+| `consigner_integrite` | H5 | Résultats d'intégrité |
+
+Déclencheurs (sur toutes les tables protégées) :
+- refus de `DELETE` (ligne) et de `TRUNCATE` (`BEFORE TRUNCATE … FOR EACH STATEMENT`) ;
+- `empreinte_sha256`, `taille_octets` : non modifiables par **personne** une fois posées ; `id_piece`, `chemin`, `nom_fichier`, `statut` (sauf T2), `compteurs`, `journal_audit` : écrits seulement par les fonctions (contrôle de `current_user` = `arch_fonctions`) ;
+- colonnes de tri modifiables par `arch_nocodb` seulement aux statuts `A_trier` et `A_valider`, colonnes de décision seulement à `A_valider` ; après `Classee`, toute correction passe par `demandes` ;
+- champs obligatoires par statut ; borne de `date_piece` contre `parametres` (déclencheur, code d'erreur `DATE_HORS_PERIODE`) ; un changement de `annees_ouvertes` ne revalide pas l'existant mais alimente une vue d'écarts ;
+- `piece_id_saisi` refusé si la pièce n'est pas `Classee` ou `Manquante` ;
+- journal : chaque insertion, mise à jour et appel de fonction écrit une ligne chaînée (verrou sur la ligne de tête du journal pour sérialiser le chaînage).
+
+**Refus tracés.** Une exception PostgreSQL annule toute la transaction, journal compris (RS-06). Donc : (1) les fonctions ne lèvent pas d'exception pour un refus métier, elles écrivent une ligne `refus` et renvoient un code ; (2) les refus des déclencheurs (écritures directes depuis NocoDB) sont tracés par le journal du serveur PostgreSQL (§8.11), conservé avec les sauvegardes.
+
+**Préfixe de test (RS-27).** La base de test a `prefixe_identifiant = FT-TS` ; les PDF d'essai portent le filigrane « SPÉCIMEN ». Les 50 pièces de l'essai J06 sont réelles et vont en production (FT-PC).
+
+### 4.5 Rôles PostgreSQL et matrice des droits
+
+Aucun outil ne se connecte en superutilisateur ni en propriétaire. `postgres` (superutilisateur) : mot de passe au coffre, utilisé seulement pour créer les rôles. `arch_owner` : propriétaire des tables, `NOLOGIN` hors migration (chaque ouverture notée au journal d'exploitation). `arch_fonctions` : `NOLOGIN`, propriétaire des fonctions. Révoqués partout pour les rôles de connexion : `TRUNCATE`, `REFERENCES`, `TRIGGER`, `DELETE`.
+
+| Table | `arch_nocodb` (NocoDB) | `arch_n8n` (n8n) | `arch_lecture` (H1–H6, rapports) | `arch_admin` |
+|---|---|---|---|---|
+| `pieces` | SELECT ; UPDATE des seules colonnes de tri (`date_piece`, `date_estimee`, `type_piece`, `tiers`, `numero_doc_tiers`, `montant_fcfa`, `sens`, `sans_montant`, `trie_par`, `pris_par`, `statut` pour T2) et de décision (`decision`, `motif_decision`, `valide_par`) | SELECT | SELECT | SELECT |
+| `compteurs`, `journal_audit`, `refus`, `pieces_versions`, `fichiers_deposes`, `lots_depot` | SELECT | SELECT | SELECT | SELECT |
+| `parametres`, `types_piece`, `sources_exercice`, `comptes_bancaires` | SELECT | SELECT | SELECT | SELECT (modification par migration) |
+| `declarations_manquantes`, `demandes` | SELECT, INSERT | SELECT | SELECT | SELECT |
+| `inventaire`, `plan_avancement`, `rapprochements_bancaires`, `ecarts_acceptes`, `controles_pieces` | SELECT, INSERT, UPDATE (colonnes de saisie ; `controles_pieces` en INSERT seul) | SELECT | SELECT | SELECT |
+| `ecritures` | SELECT ; UPDATE (`piece_id_saisi`) | SELECT | SELECT | SELECT |
+| `ecritures_import_brut`, `imports_ecritures` | SELECT | SELECT, INSERT (zone brute, ligne d'import `Recu`) | SELECT | SELECT |
+| `erreurs_workflow` | SELECT | SELECT, INSERT | SELECT | SELECT, UPDATE (`statut`) |
+| `resultats_integrite` | SELECT | SELECT | SELECT (écriture par `consigner_integrite`) | SELECT |
+| Fonctions | — | EXECUTE (W01, W02, W05) | EXECUTE (`consigner_integrite`) | EXECUTE (administration) |
+
+Les restrictions de NocoDB par rôle (§6) viennent en plus ; la base reste la protection de dernier ressort.
+
+### 4.6 Arborescence sur disque
 
 ```
 /srv/archive/
-  depot/LOT-AAAAMMJJ-HHMM-POSTE/   *.pdf, manifest.csv, _PRET      (écriture : compte SFTP du poste)
-  a_trier/<sha256>.pdf                                             (écriture : n8n)
-  quarantaine/LOT-…/                                               (fichiers refusés, conservés 30 jours, à confirmer)
-  fichiers/Archive/AAAA/N_Type/MM_Mois/<nom>.pdf                   (écriture : n8n ; lecture : Nginx)
-  imports/ecritures/, imports/traites/                             (CSV de l'ERP)
-  sauvegardes/                                                     (dumps de la nuit, avant envoi)
-  pgdata/                                                          (PostgreSQL, volume)
+  depot/                 zone SFTP du poste (chroot) ; un lot _PRET est déplacé par W01 hors de cette zone
+  entree/<id_lot>/        lots en cours d'ingestion (hors zone SFTP)
+  objets/<sha256>.pdf     fichiers, root:root 0444, répertoire au bit collant
+  quarantaine/<id_lot>/<sha256>.bin
+  fichiers/Archive/AAAA/N_Type/MM_Mois/<nom>.pdf   liens vers objets/ (H2)
+  fichiers/_versions/<id_piece>/<ancien nom>.pdf    anciens liens après correction
+  imports/               zone SFTP du compte « imports » (chroot)
+  registre_ids/AAAA.log  registre hors base (H3), ajout seul
+  sauvegardes/           fichiers chiffrés avant envoi
+  pgdata/                PostgreSQL
 ```
+La racine `/srv/archive` est une variable d'environnement de n8n et des tâches de l'hôte, pas un paramètre modifiable dans NocoDB.
 
-### 4.6 Règle de nommage appliquée
+### 4.7 Règle de nommage (calculée en SQL)
 
-`AAAA-MM-JJ_FT-PC-AAAA-NNNNN_type_tiers_montant.pdf` où `AAAA-MM-JJ` = `date_piece`, `type` = `types_piece.code_nom_fichier`, `tiers` = tiers en minuscules sans accents, espaces et signes remplacés par des tirets, 40 caractères au plus, `montant` = `montant_fcfa` sans séparateur. Seul le PDF est accepté au dépôt (Hypothèse : l'application de scan produit du PDF ; **à confirmer** avec le matériel). Une pièce = un fichier ; un PDF contenant plusieurs pièces est rejeté (T4) et renumérisé.
+`AAAA-MM-JJ_FT-PC-AAAA-NNNNN_type_tiers_montant.pdf` : `AAAA-MM-JJ` = `date_piece` ; `type` = `code_nom_fichier` ; `tiers` = translittération (é → e, œ → oe, æ → ae, ß → ss), minuscules, tout caractère hors `[a-z0-9]` remplacé par un tiret, tirets successifs fusionnés, tirets de début et de fin retirés, tronqué à 40 caractères puis tiret final retiré ; vide → refus à T2 ; `montant` = chiffres seuls, `sans-montant` si `sans_montant`, préfixe `avoir-` si `sens` = Avoir (Défaut D4). Chemin `Archive/AAAA/<types_piece.code>/<nom du mois>/`. Seul ce calcul produit des chemins ; aucun nom fourni par un humain ou par le poste n'entre dans un chemin (§8.4). Une pièce = un PDF ; un PDF de plusieurs pièces est rejeté (T4).
 
-## 5. Workflows n8n
+## 5. Workflows, tâches planifiées et contrôles
 
-Règles communes : chaque workflow est exporté en JSON et versionné (sans identifiants) ; chaque workflow a pour « workflow d'erreur » W09 ; aucune donnée personnelle, aucun montant ni nom de tiers dans les messages d'alerte ; les noms de nœuds et les capacités citées sont **à vérifier sur la version installée** (ARC-002), notamment le calcul d'empreinte (nœud de chiffrement ou nœud de code avec le module `crypto` autorisé) et l'écriture de fichiers sur disque (répertoires autorisés).
+### 5.1 Workflows n8n (trois, plus l'alerte)
 
-| N° | Nom | Déclencheur | Humain dans la boucle | US couvertes |
-|---|---|---|---|---|
-| W01 | Ingestion d'un lot de scans | Planifié toutes les 5 min | Avant : numérisation et envoi ; après : tri | US-ARC-06, 01 |
-| W02 | Attribution d'identifiant, renommage, rangement | Planifié toutes les 2 min + appel par W03 | Avant : décision de validation | US-ARC-01 |
-| W03 | Traitement des décisions de validation | Planifié toutes les 2 min | La décision elle-même | US-ARC-01, 06 |
-| W04 | Déclaration d'une pièce manquante et relances | Planifié (déclarations) + quotidien (relances) | Déclaration, signature de l'attestation | US-ARC-05 |
-| W05 | Import des écritures | Planifié toutes les 15 min sur `imports/ecritures/` | Dépôt du CSV ; option B : correspondance | US-ARC-02, 04, 08 |
-| W06 | Contrôles inverses et rapport | Quotidien 6 h + à la demande | Correction des écarts | US-ARC-04, 07, 11 ; critères 2, 3, 6 |
-| W07a | Sauvegarde | Quotidien 1 h | Branchement hebdomadaire du disque externe | US-SYS-04 ; critère 5 |
-| W07b | Vérification de restauration | Hebdomadaire + aux jalons | Restauration manuelle aux jalons | Critère 5 |
-| W08 | Ouvrir une pièce depuis l'ERP | Webhook GET | — | US-ARC-03, 08 |
-| W09 | Alerte d'échec et file d'erreurs | Déclencheur d'erreur de n8n | Reprise ou abandon décidé par le développeur | US-SYS-08 |
-| W10 | Rapport quotidien d'avancement | Quotidien 18 h | Lecture | US-ARC-11 |
-| W11 | Supervision | Toutes les 15 min | — | Exploitation |
-| W12 | Extraction assistée par IA | Désactivé | Validation inchangée | ADR-06 (option) |
+Règles communes : toutes les requêtes appellent une fonction ou utilisent des paramètres liés (`$1`, `$2`) ; aucune expression `{{ }}` dans le texte SQL (vérifié dans les exports JSON) ; nœud Execute Command désactivé ; accès disque limité à `/srv/archive` ; aucun appel vers un service extérieur autre que SMTP ; workflow d'erreur = W09 ; arrêt de la reprise automatique après 5 échecs sur le même objet.
 
-### W01 — Ingestion d'un lot de scans
-- **Entrées** : répertoire `depot/LOT-…/` contenant `_PRET` et `manifest.csv` (nom ; taille ; SHA-256).
-- **Étapes** : (1) lister les lots prêts non encore connus ou en `Erreur` ; (2) créer ou reprendre la ligne `lots_depot` (`En_ingestion`) ; (3) pour chaque fichier : refuser s'il n'est pas un PDF ou dépasse la taille maximale (`Rejete_format`, copie en quarantaine) ; calculer l'empreinte ; si elle diffère du manifeste : `Rejete_transfert` ; si elle existe déjà dans `pieces` : `Doublon_exact` ; sinon copier vers `a_trier/<sha256>.pdf` et créer la pièce `A_trier` ; (4) mettre à jour les compteurs du lot, statut `Ingere` ou `Ingere_avec_ecarts` ; (5) renommer le lot en `depot/_traites/` (ou laisser au nettoyage de l'hôte si n8n ne peut pas déplacer : à vérifier).
-- **Sorties** : pièces `A_trier`, compteurs du lot, fichiers en quarantaine.
-- **Erreurs** : lot sans manifeste ou fichiers manquants → lot `Erreur` + W09 ; l'aide au tri renvoie le lot.
-- **Idempotence** : la pièce est créée par `INSERT … ON CONFLICT (empreinte) DO NOTHING` ; le fichier `a_trier` porte l'empreinte comme nom ; `fichiers_deposes` est unique par (lot, nom). Rejouer un lot ne crée rien de plus.
-- **Rejouabilité** : relancer W01 sur un lot `Erreur` suffit. Le poste ne supprime jamais un lot local avant que le lot soit `Ingere` et que la sauvegarde de la nuit suivante ait réussi.
+**W01 — Ingestion d'un lot** (planifié toutes les 5 min ; humain avant : numérisation ; après : tri).
+1. Lister `depot/` : un nom de lot qui ne respecte pas le format → lot `Erreur`, rien n'est lu. Un lot dont le code existe déjà avec un manifeste différent → refus (un redépôt volontaire prend un nouveau code).
+2. Déplacer le lot prêt vers `entree/<id_lot>/` (le poste ne peut plus le modifier).
+3. Pour chaque ligne du manifeste (sous-dossiers admis) : fichier déjà enregistré dans ce lot → sauté ; octets de tête différents de `%PDF-` → `Rejete_format` ; taille > maximum → `Rejete_taille` ; empreinte ≠ manifeste → `Rejete_transfert` ; sinon calcul SHA-256, copie vers `objets/<sha256>.pdf` (si absent), appel `enregistrer_fichier`. Les refusés vont en `quarantaine/<id_lot>/<sha256>.bin`.
+4. Compteurs du lot, statut `Ingere` ou `Ingere_avec_ecarts`.
+- **Reprise** : les lots `En_ingestion` non modifiés depuis 15 min et les lots `Erreur` sont repris ; le rejeu ne crée ni pièce ni doublon de plus.
 
-### W02 — Attribution d'identifiant, renommage et rangement
-- **Entrées** : pièces `A_valider` avec décision Valider (via W03), pièces `Classement_en_cours`, pièces `Manquante` avec justificatif validé.
-- **Étapes** : (1) appeler `attribuer_id_piece(id, valide_par, execution)` (renvoie l'identifiant, existant ou nouveau) ; (2) calculer chemin et nom (§4.5, §4.6) ; (3) si le fichier final existe déjà avec la même empreinte : passer à (5) ; s'il existe avec une autre empreinte : erreur, ne jamais écraser ; (4) écrire le fichier sous un nom temporaire puis le renommer, relire et comparer l'empreinte ; (5) mettre à jour `chemin`, `nom_fichier`, statut `Classee` (T6) dans une seule requête ; (6) le fichier de `a_trier/` est purgé par le nettoyage de l'hôte une fois la pièce `Classee` et sauvegardée.
-- **Sorties** : fichier rangé, pièce `Classee`, lignes `journal_audit` (ATTRIBUTION, RANGEMENT).
-- **Erreurs** : erreur après l'attribution → la pièce reste `Classement_en_cours` avec son identifiant, W09 alerte ; aucune perte de numéro.
-- **Idempotence** : la fonction renvoie le même identifiant ; l'écriture du fichier vérifie l'existant ; la mise à jour finale est conditionnée au statut courant.
-- **Rejouabilité** : W02 reprend automatiquement toute pièce `Classement_en_cours` depuis plus de 10 minutes.
+**W02 — Décisions humaines** (planifié toutes les 2 min ; l'humain décide dans NocoDB).
+Traite, dans l'ordre : pièces `A_valider` avec décision ; déclarations `A_traiter` ; demandes `A_traiter`. Pour chaque élément : contrôle des quatre yeux (§4.3), appel de la fonction correspondante, lecture du code de retour ; refus → message dans la ligne (`code_refus`) visible par l'auteur. Aucune écriture de fichier : la validation ne touche que la base ; H2 crée les liens. Rejouable : chaque fonction renvoie le même résultat pour un élément déjà traité.
 
-### W03 — Traitement des décisions de validation
-- **Entrées** : pièces `A_valider` dont `decision_validation` est renseignée.
-- **Étapes** : vérifier `valide_par` ≠ `trie_par` (sinon effacer la décision et signaler dans la vue) ; Renvoyer → T3 avec motif ; Valider → appeler W02 ; journaliser.
-- **Humain** : la décision, prise dans la vue « À valider » (§6), après lecture de l'aperçu et de l'avertissement de doublon probable.
-- **Idempotence** : une décision déjà traitée est remise à vide après traitement ; le statut sert de verrou.
+**W05 — Import des écritures** (planifié toutes les 15 min sur `imports/`).
+1. Fichier déjà importé (empreinte d'un import `Importe`) → ignoré.
+2. Validation stricte par colonne : en-tête exact, UTF-8, `journal` `^[A-Z0-9]{1,6}$`, `numero_ecriture` `^[A-Za-z0-9-]{1,20}$`, `compte` `^[0-9]{2,12}$`, `piece_id` au format ADR-03 ou vide, entiers bornés, `libelle` ≤ 200 caractères et ne commençant pas par `= + - @`, équilibre débit = crédit par écriture, `source` égale à `sources_exercice` → sinon import `Rejete` en entier.
+3. Chargement dans `ecritures_import_brut`, puis `appliquer_import` en **une** transaction : insertion ou mise à jour par clé naturelle sans toucher `piece_id_saisi`, `presente_dernier_import` recalculé, import `Importe`. Si l'import ferait perdre leur citation à plus de `seuil_import_confirmation` pièces ou à une pièce contrôlée : statut `A_confirmer`, appliqué seulement après confirmation du responsable de validation dans NocoDB.
+- Une coupure avant la fin annule tout ; le rejeu repart de zéro, car l'empreinte n'est marquée importée qu'au statut `Importe`.
 
-### W04 — Pièce manquante
-- **Entrées** : formulaire NocoDB « Déclarer une pièce manquante » (comptable) : année, type, tiers, date et montant estimés, description, motif, traitement choisi.
-- **Étapes** : créer la ligne `pieces` (`nature_justificatif` = Attestation interne ou Duplicata selon le traitement) puis appeler `attribuer_id_piece` (T7) ; créer `pieces_manquantes` ; produire le modèle d'attestation à faire signer (texte fixe, à rédiger : **à confirmer** par la Direction) ; relance quotidienne des demandes de duplicata sans réponse après le délai paramétré (alerte au comptable, pas d'envoi automatique au fournisseur).
-- **Humain** : déclaration ; demande de duplicata au fournisseur ; signature de l'attestation par la Direction ; dépôt du duplicata ou de l'attestation signée comme un fichier du lot, rattaché à l'identifiant existant dans la vue « Justificatifs à rattacher », puis validation (T8 par W02).
-- **Idempotence** : un formulaire soumis deux fois crée deux déclarations ; la vue « Manquantes » affiche les doublons probables (même clé métier) pour annulation (T13).
+**W09 — Alerte d'échec et file d'erreurs.** Déclencheur d'erreur de n8n ; ligne `erreurs_workflow` ; courriel au développeur et au responsable de validation (SMTP) sans chemin, tiers ni montant ; au-delà de 5 erreurs par heure, un récapitulatif. Si n8n est arrêté, la sonde externe (§8.8) prend le relais.
 
-### W05 — Import des écritures (option A et option B)
-- **Entrées** : CSV au format §7.2 déposé dans `imports/ecritures/` (par l'ERP ou à la main).
-- **Étapes** : (1) refuser un fichier déjà importé (empreinte connue) ; (2) valider l'en-tête, l'encodage, les montants entiers, l'équilibre débit = crédit par écriture ; en cas d'échec : import `Rejete` avec motif, rien n'est écrit ; (3) dans une transaction : insérer ou mettre à jour par clé naturelle (sans toucher `piece_id_saisi`), marquer `presente_dernier_import` pour l'exercice importé ; (4) mettre à jour les statuts des pièces (T9, T10) et `ref_ecriture` ; (5) lancer W06 sur l'exercice.
-- **Humain** : dépôt du fichier ; en option B, correspondance écriture → pièce dans la vue « Écritures à relier ».
-- **Idempotence** : empreinte de fichier unique ; mise à jour par clé naturelle.
-- **Rejouabilité** : un import rejeté se corrige à la source et se redépose.
+**W08 (ouverture d'une pièce)** : supprimé comme webhook public ; remplacé par la route `/piece/<id>` (§8.2), servie par un webhook n8n joignable seulement depuis Nginx en `127.0.0.1`.
 
-### W06 — Contrôles inverses et rapport
+### 5.2 Tâches planifiées de l'hôte
 
-Codes d'écart produits :
+Scripts versionnés, lancés par cron ou systemd, sous un utilisateur dédié sans droit sur `pgdata` ; ils ne passent jamais par un interpréteur de commandes avec des valeurs lues en base ; ils ne lisent que des identifiants numériques, des empreintes (`^[0-9a-f]{64}$`) et des chemins calculés par la base, qu'ils revalident (préfixe `/srv/archive/fichiers/Archive/` après normalisation).
 
-| Code | Contrôle | Critère |
+| Tâche | Fréquence | Rôle |
 |---|---|---|
-| E01 | Écriture sans pièce ni motif de pièce manquante | 2, 3 |
-| E02 | Écriture citant un identifiant inconnu, annulé ou rejeté | 2 |
-| E03 | Pièce `Saisie_ERP` sans écriture présente | 3 |
-| E04 | Pièce `Classee` sans écriture depuis plus de N jours (N à fixer) | 3 |
-| E05 | Trou ou doublon de numérotation par année | 6 |
-| E06 | Fichier absent du disque ou empreinte différente | Intégrité |
+| H1 Scellement | Chaque minute | Nouveaux objets → `root:root 0444` ; `chattr +i` si possible (à vérifier) |
+| H2 Liens d'arborescence | Chaque minute | Crée les liens de `v_arborescence` ; déplace les anciens liens corrigés vers `_versions/` |
+| H3 Registre des identifiants | Chaque minute | Ajoute les nouvelles attributions à `registre_ids/AAAA.log` ; envoie le segment chiffré sur GCS (nom unique) |
+| H4 Sauvegarde | Chaque nuit à 1 h ; toutes les 2 h de 8 h à 20 h pendant S43–S44 (Défaut D9) | §8.6 |
+| H5 Intégrité | Chaque nuit (pièces des 7 derniers jours) ; complète chaque dimanche | Recalcule les empreintes et compare à `pieces` **et** à `fichiers_deposes` ; fichiers sans pièce ; liens absents ; registre ≠ base ; écrit par `consigner_integrite` |
+| H6 Disque et ancre | Toutes les 15 min (disque) ; chaque nuit (ancre) | Alerte au seuil de 80 % ; ancre du journal (§8.11) |
+
+### 5.3 Contrôles (vues SQL dans NocoDB, export CSV envoyé chaque matin au responsable de validation)
+
+Une écriture est **justifiée** si et seulement si elle cite (`piece_id_cite`, à défaut `piece_id_saisi`) une pièce `Classee` ou `Manquante` (Défaut D5). `motif_piece_manquante` est informatif.
+
+| Code | Vue | Critère |
+|---|---|---|
+| E01 | Écriture présente sans aucune citation | 2, 3 |
+| E02 | Écriture citant un identifiant inconnu, rejeté, annulé ou fusionné | 2 |
+| E03 | Pièce contrôlée sans écriture présente | 3 |
+| E04 | Pièce `Classee` ou `Manquante` sans écriture depuis plus de `delai_e04_jours` | 3 |
+| E05 | Trou ou doublon de numérotation ; différence entre la base et le registre hors base | 6 |
+| E06 | Résultats d'intégrité H5 (fichier absent, empreinte différente, fichier sans pièce, lien absent) | Intégrité |
 | E07 | Pièce `Manquante` sans traitement clos à la date limite | 1 |
-| E08 | Somme des écritures citant une pièce différente de son montant (information) | Qualité |
-| E09 | Rapprochement bancaire avec écart non expliqué | 7 |
-| E10 | Lot déposé non ingéré depuis plus de 24 h ; pièce `A_trier` depuis plus de 5 jours ouvrés | 1 |
+| E08 | Somme des écritures ≠ montant de la pièce (information) ; année de la pièce et exercice distants de plus d'un an (information) | Qualité |
+| E09 | Rapprochement avec écart non expliqué ou relevé manquant | 7 |
+| E10 | Lot non ingéré depuis 24 h ; pièce `A_trier` depuis plus de 5 jours ouvrés | 1 |
+| E11 | Écart entre `inventaire` et l'archive (`v_inventaire_vs_archive` : attendu, classées, manquantes, rejetées, en cours) | 1 |
+| E12 | `piece_id_cite` différent de `piece_id_saisi` | 2 |
+| E13 | Pièce validée moins d'une heure après son tri ou par un compte égal au trieur (si identifiable) | Quatre yeux |
 
-- **Étapes** : ouvrir une ligne `controles` ; exécuter les requêtes (vues SQL §4.2) ; créer les écarts nouveaux, clore automatiquement ceux qui ont disparu (statut Corrige, `resolu_par` = système) ; envoyer un rapport par courriel (comptes par code, pas de détail nominatif) ; E06 complet (relecture de tous les fichiers) une fois par semaine, sur un échantillon chaque jour.
-- **Humain** : chaque écart a un responsable et une date limite ; le responsable de validation accepte un écart documenté (statut `Accepte_documente`, commentaire obligatoire).
-- **Idempotence** : unicité (code, objet) des écarts ouverts.
-
-### W07a — Sauvegarde (détail §8.4)
-- **Étapes** : `pg_dump` des bases `archive_compta`, `nocodb_meta`, `n8n` ; export JSON des workflows ; archive des fichiers ajoutés depuis la veille ; empreintes des dumps ; envoi vers GCS ; vérification que l'objet distant existe et a la bonne taille ; ligne `controles` (type Sauvegarde). Le dump peut être lancé par une tâche planifiée de l'hôte plutôt que par n8n si n8n n'a pas accès à `pg_dump` (à vérifier) ; n8n vérifie alors seulement le résultat.
-- **Erreurs** : tout échec → W09 ; absence de sauvegarde de moins de 26 h → alerte W11.
-- **Idempotence** : fichiers nommés par date ; un envoi refait remplace l'objet du même nom dans un bucket versionné.
-
-### W07b — Vérification de restauration
-- **Étapes** : sur l'environnement de test, restaurer le dernier dump dans une base `archive_restore` ; comparer le nombre de pièces par statut et les compteurs avec la production ; tirer 20 pièces au hasard, rapatrier leurs fichiers depuis GCS, comparer les empreintes ; consigner le résultat.
-- **Humain** : aux jalons J06 (14 oct.) et J16 (30 oct.), restauration complète faite à la main sur un autre poste, à partir de GCS seulement, avec la procédure écrite (§8.5).
-
-### W08 — Ouvrir une pièce depuis l'ERP
-- **Entrée** : `GET /webhook/piece?id=FT-PC-AAAA-NNNNN`.
-- **Étapes** : vérifier le format ; lire `chemin` et `nom_fichier` ; répondre par une redirection vers `https://<domaine archive>/fichiers/…` ; Nginx demande l'authentification de la personne et journalise l'accès. Le webhook ne renvoie jamais le fichier lui-même et ne révèle rien si l'identifiant est inconnu (page « introuvable »).
-- **Mesure** : temps d'ouverture chronométré à J06 et J14 (US-ARC-03 : moins de 2 s ; Hypothèse : tenable sur le réseau du bureau, non vérifié).
-
-### W09 — Alerte d'échec et file d'erreurs
-- **Déclencheur** : déclencheur d'erreur de n8n, désigné comme workflow d'erreur de W01 à W11.
-- **Étapes** : écrire une ligne `erreurs_workflow` ; courriel au développeur et au responsable de validation (SMTP de l'entreprise) ; si plus de 5 erreurs en une heure, un seul courriel récapitulatif.
-- **Reprise** : le développeur relance le workflow concerné (tous sont rejouables), puis passe l'erreur à `Resolue` ; une erreur `Nouvelle` depuis plus de 24 h est rappelée dans le rapport W06.
-- **Limite** : si n8n lui-même est arrêté, W09 ne part pas ; la supervision externe (W11, §8.6) couvre ce cas.
-
-### W10 — Rapport quotidien d'avancement
-Lit `v_tableau_bord` : pièces collectées, à trier, à valider, classées, saisies, contrôlées, manquantes, rejetées, par année et par type ; temps moyen entre dépôt et classement ; écart au plan recalculé à J06c. Courriel à la Direction, au comptable et au responsable de validation.
-
-### W11 — Supervision
-Espace disque (alerte au seuil), réponse de NocoDB et de PostgreSQL, âge de la dernière sauvegarde, nombre d'erreurs ouvertes, lots en attente. Complétée par une sonde externe (§8.6).
+Un écart enregistré dans `ecarts_acceptes` sort de la vue et apparaît dans la vue « Écarts acceptés ». Vues complémentaires : `v_balance` (exercice, compte, débit, crédit, solde, nombre d'écritures, nombre non justifiées) ouverte sur les écritures du compte, puis sur leur pièce (RS-20) ; comparaison à la balance de l'ERP si elle est fournie au même format (Défaut D16) ; `v_tableau_bord` (déposées, à trier, triées, classées, saisies, contrôlées, manquantes, rejetées, par année et type ; temps moyen dépôt → classement ; écart à `plan_avancement`) ; `v_echantillon` : tirage d'**écritures** par compte avec graine notée, strates (au moins 3 par type de pièce, 5 plus gros montants, premier et dernier mois), parcours chronométré « compte → écriture → pièce » (tolérance Défaut D15 : 30 sur 30).
 
 ## 6. Interfaces utilisateur (NocoDB)
 
-Les rôles cités (Owner, Creator, Editor, Commenter, Viewer) et la possibilité de restreindre une table ou un champ par rôle sont **à vérifier sur la version installée** ; si la restriction par table n'existe pas, les limites ci-dessous reposent sur des vues verrouillées et sur la base (§4.4).
+Rôles NocoDB et restrictions par table ou par champ : à vérifier sur la version installée ; la base protège de toute façon (§4.5).
 
-| Utilisateur | Rôle NocoDB proposé | Vues et formulaires | Peut modifier |
-|---|---|---|---|
-| Aide au tri | Editor | « File à trier » (grille, colonne d'aperçu, filtre `A_trier`, tri par lot) ; « Mes lots » (`lots_depot`, `fichiers_deposes`) | Date, type, tiers, numéro du document, montant, `trie_par` ; passage T2 |
-| Comptable | Editor | « À valider » (avec colonne doublon probable) ; « Corrections » ; « Déclarer une pièce manquante » (formulaire) ; « Manquantes ouvertes » ; « Écritures à relier » (option B) ; « Écritures sans pièce » ; « Pièces classées sans écriture » ; « Rapprochements » ; « Recherche » | Décision de validation (pièces triées par un autre), corrections, déclarations, rapprochements |
-| Responsable de validation | Editor | Toutes les vues du comptable + « Écarts ouverts » ; « Échantillon de contrôle » (30 par année, `v_echantillon`) ; « Annulations » ; tableau de bord | Décisions, T11, T12, T13, statut des écarts |
-| Direction | Viewer | « Tableau de bord » ; « Recherche » (par identifiant, tiers, montant, compte) ; « Manquantes à signer » ; « Écarts ouverts » | Rien dans NocoDB ; signe les attestations sur papier |
-| Développeur | Owner | Tout, plus `erreurs_workflow`, `parametres`, `controles` | Paramètres, reprise des erreurs |
+| Utilisateur | Rôle proposé | Vues et formulaires |
+|---|---|---|
+| Aide au tri | Editor | « File à trier » (sans les champs de décision) ; « Mes lots » |
+| Comptable | Editor | « À valider » (avec doublons probables) ; « Déclarer une pièce manquante » (formulaire sur `declarations_manquantes`) ; « Justificatifs à rattacher » et « Corrections » (formulaires sur `demandes`) ; « Écritures à relier » (ne propose que les pièces `Classee` ou `Manquante`) ; « Inventaire » ; « Rapprochements » ; « Contrôles E01–E13 » ; « Recherche » |
+| Responsable de validation | Editor | Vues du comptable + « Échantillon » ; « Imports à confirmer » ; « Écarts acceptés » ; « Annulations » ; tableau de bord |
+| Direction | Viewer | Tableau de bord ; Recherche ; Manquantes à signer ; Contrôles |
+| Développeur | Owner | Tout, plus `erreurs_workflow`, `refus`, `resultats_integrite` |
 
-Règles d'écran :
-- Les vues de travail sont verrouillées (filtres et colonnes non modifiables par les utilisateurs).
-- **Aucune vue ni aucun formulaire partagé par lien public** ; le partage public est désactivé si la version le permet (à vérifier).
-- Libellés en français ; montants affichés avec séparateur de milliers, stockés sans.
-- Recherche « depuis l'état financier » (US-ARC-08, critère 4) : la Direction ou le contrôleur part d'un compte de la balance, filtre `ecritures` par exercice et compte, ouvre la ligne, clique sur le lien de la pièce. Le passage « poste du bilan → comptes » se fait avec la balance de l'exercice, hors outil.
+Vues de travail verrouillées ; **aucune vue ni formulaire partagé par lien public** ; inscription fermée (§8.2) ; recherche insensible à la casse et aux accents par `tiers_recherche` ; montants affichés avec séparateur, stockés sans. L'exportation CSV depuis NocoDB est réservée au développeur et au responsable de validation (Défaut D13).
 
 ## 7. Contrat d'interface avec l'ERP
 
-Tout ce paragraphe est **à confirmer** par le développeur après lecture du code de l'ERP (ARC-018). Rien n'est supposé sur ses capacités actuelles.
+À confirmer par le développeur après lecture du code de l'ERP (ARC-018). Rien n'est supposé sur ses capacités.
 
-### 7.1 Données échangées
-
+### 7.1 Flux
 | Flux | Sens | Contenu | Fréquence | Responsable |
 |---|---|---|---|---|
-| F1 Écritures | ERP (ou Excel du comptable) → archive | CSV §7.2 | Chaque jour ouvré pendant S43–S44, et avant chaque contrôle | Comptable dépose ; ou ERP exporte automatiquement (option A, si faisable) |
-| F2 Liste des pièces | Archive → ERP | CSV : `id_piece;statut;date_piece;type;tiers;montant_fcfa;lien` des pièces `Classee`, `Saisie_ERP`, `Controlee`, `Manquante` | Chaque jour (W06) | Système |
-| F3 Ouverture d'une pièce | ERP → archive | Lien `…/webhook/piece?id=…` affiché à côté de `piece_id` | À la demande | ERP construit le lien |
-| F4 PDF produits par l'ERP (US-ARC-09) | ERP → archive | PDF + fichier `.json` (type, tiers, date, montant, référence ERP) déposés comme un lot | À la génération | **Après le 31 octobre**, sauf décision contraire |
+| F1 Écritures | ERP ou Excel → archive | CSV §7.2, exercice complet | Chaque jour ouvré en S43–S44 et avant chaque contrôle | Comptable, par le compte SFTP « imports » |
+| F1b Balance (facultatif) | ERP → archive | `exercice;compte;debit_fcfa;credit_fcfa` | Avec F1 | Comptable (Défaut D16) |
+| F3 Ouverture | ERP → archive | Lien `https://<archive>/piece/<id>` | À la demande | ERP (option A) |
+| F2 Liste des pièces vers l'ERP | — | **Reporté** après le 31 octobre (§11) | — | — |
+| F4 PDF produits par l'ERP | ERP → archive | **Hors périmètre du 31 octobre, Défaut D6** : d'ici là, les factures émises par l'ERP sont imprimées en PDF et déposées comme lots ordinaires `6_Ventes` si ce type entre dans le périmètre | — | Comptable |
 
 ### 7.2 Format du CSV des écritures (F1)
-UTF-8, séparateur point-virgule, une ligne par ligne d'écriture, en-tête obligatoire, montants entiers sans séparateur, dates `AAAA-MM-JJ`. Nom : `ecritures_<SOURCE>_<EXERCICE>_<AAAAMMJJHHMM>.csv`. Un fichier contient tout l'exercice (export complet, pas différentiel) : c'est ce qui permet de voir les écritures disparues.
+UTF-8, point-virgule, en-tête obligatoire, une ligne par ligne d'écriture, montants entiers, dates `AAAA-MM-JJ`, nom `ecritures_<SOURCE>_<EXERCICE>_<AAAAMMJJHHMM>.csv`, exercice complet.
 
-`source;exercice;journal;numero_ecriture;ligne;date_ecriture;compte;libelle;debit_fcfa;credit_fcfa;piece_id;motif_piece_manquante`
+`source;exercice;journal;numero_ecriture;ligne;date_ecriture;compte;libelle;debit_fcfa;credit_fcfa;saisi_par;piece_id;motif_piece_manquante`
 
-Exemple : `ERP;2025;AC;000231;1;2025-03-15;401100;Facture SOCOFER;0;450000;FT-PC-2025-00017;`
+Exemple : `ERP;2025;AC;000231;1;2025-03-15;401100;Facture SOCOFER;0;450000;cpt1;FT-PC-2025-00017;`
 
-### 7.3 Option A — ce que l'ERP doit faire
-1. Ajouter `piece_id` (texte, format `FT-PC-AAAA-NNNNN`) et `motif_piece_manquante` sur les écritures, renseignés au point d'écriture unique `comptabilisation.py` ; refuser une écriture sans l'un ou l'autre (US-ARC-02).
-2. Vérifier le format à la saisie, et l'existence de l'identifiant contre la dernière liste F2 importée (fonctionne sans réseau).
-3. Exporter F1 avec la colonne `piece_id`.
-4. Afficher le lien F3 (ouverture de la pièce depuis l'écriture).
-5. Ne pas créer de table de pièces concurrente : l'archive est la seule source des pièces.
+`saisi_par` (identifiant de la personne qui a saisi l'écriture) sert aux quatre yeux du contrôle (Défaut D10). Une pièce manquante se cite par son identifiant FT-PC, pas par un motif libre (Défaut D5).
 
-### 7.4 Option B — ce que l'ERP doit faire
-Exporter F1 sans `piece_id` (ou le comptable produit le CSV depuis son Excel). La correspondance est faite dans NocoDB (`piece_id_saisi`). Condition : la clé (journal, numéro, ligne) d'une écriture ne doit jamais changer d'un export à l'autre.
+### 7.3 Option A (visée pour le 21 octobre, Défaut D2)
+`piece_id` obligatoire sur chaque écriture au point d'écriture `comptabilisation.py` ; format vérifié à la saisie ; export F1 avec la colonne ; lien F3 ; aucune table de pièces dans l'ERP.
+
+### 7.4 Option B (démarrage)
+Export F1 sans `piece_id` ; correspondance dans « Écritures à relier » ; clé (journal, numéro, ligne) stable d'un export à l'autre. Limites acceptées par défaut (Défaut D2) : pas de refus à la saisie dans l'ERP (REC-045), pas d'identifiant affiché dans l'ERP (REC-044 en partie).
 
 ### 7.5 À vérifier dans le code de l'ERP
-- L'écriture a-t-elle un identifiant stable (journal + numéro + ligne) qui ne change pas après validation ou renumérotation ?
-- Une écriture validée peut-elle être modifiée (règle des quatre yeux) ? Si oui, comment l'export le reflète-t-il ?
-- `comptabilisation.py` est-il vraiment le seul chemin d'écriture (imports, reprises, scripts) ?
-- Existe-t-il déjà un champ de référence de pièce, un export CSV, une API ?
-- Comment les écritures des trois exercices passés entreront-elles dans l'ERP (J04b) ? Si elles restent hors ERP, la source `EXCEL` de F1 s'applique.
-- Fuseau horaire et format des dates de l'ERP.
-- La sauvegarde de 2 h de l'ERP inclut-elle le nouveau champ ? (Elle relève de l'ERP, pas de cette conception.)
+Identifiant stable des écritures ; modification d'une écriture validée et reflet dans l'export ; `comptabilisation.py` seul chemin d'écriture ; champ, export ou API existants ; reprise des exercices passés (J04b, D16) ; fuseau et format de date ; utilisateur de saisie disponible pour `saisi_par` ; sûreté de la production du CSV (entrée non fiable pour l'archive).
 
 ## 8. Sécurité et exploitation
 
-### 8.1 Comptes et rôles
-- Un compte NocoDB nominatif par personne ; aucun compte partagé. Liste nominative des personnes autorisées validée par la Direction (programme §5.5).
-- Double authentification pour la Direction, le comptable et le développeur si la version de NocoDB la propose (à vérifier) ; sinon mots de passe longs et accès restreint (point de risque §10).
-- PostgreSQL : `arch_owner` (migrations, développeur seulement), `arch_nocodb` (lecture, insertion, mise à jour ; pas de suppression), `arch_n8n` (même chose + exécution de la fonction d'attribution), `arch_lecture` (rapports et sauvegardes). PostgreSQL n'écoute pas sur Internet.
-- Identité humaine dans le journal : NocoDB ne transmet pas le nom de l'utilisateur à PostgreSQL ; le journal de la base enregistre l'utilisateur technique. Le nom humain vient des champs `trie_par`, `valide_par`, `controle_par` et, si la version le fournit, du journal d'activité de NocoDB et des champs « créé par / modifié par » (à vérifier). C'est déclaratif : voir §10.
+### 8.1 Comptes
+- Un compte NocoDB nominatif par personne ; liste signée par la Direction (D13) ; retrait de droits immédiat, sur NocoDB, Nginx et SFTP ensemble (fiche de sortie unique).
+- **Double authentification obligatoire avant le go** sur le panneau Hostinger, le compte Google propriétaire du projet GCS et GitHub ; SSH par clé seulement ; NocoDB : double authentification si la version la propose (à vérifier), sinon mots de passe d'au moins 14 caractères par gestionnaire de mots de passe, limitation de débit et `fail2ban` sur les pages de connexion.
+- Comptes Nginx : un par personne, synchronisés avec la liste NocoDB.
 
-### 8.2 Secrets
-- Mots de passe PostgreSQL, jetons NocoDB, clé de chiffrement de n8n, clé du compte de service GCS, mot de passe SMTP : dans des fichiers d'environnement du serveur lisibles par root seulement (droits 600), jamais dans le dépôt Git ni dans les exports de workflows.
-- Jeton NocoDB de n8n distinct de celui du site web (`api/lib/nocodb.js`) ; révocable séparément.
-- Compte de service GCS limité au bucket de sauvegarde, avec droit de création d'objets mais sans droit de suppression (rôle exact à vérifier dans GCS) : une machine compromise ne peut pas effacer la copie hors site.
-- Rotation : à chaque départ d'une personne, et au moins une fois après le 31 octobre (les secrets ont circulé pendant la construction).
-- La clé de chiffrement de n8n et la clé éventuelle de chiffrement des sauvegardes sont aussi imprimées et mises sous enveloppe scellée dans le coffre de la Direction (sinon une sauvegarde chiffrée est irrécupérable).
+### 8.2 Exposition réseau
+- Seuls 22 et 443 (80 en redirection) répondent depuis Internet, vérifié par `nmap` depuis un autre réseau. Tous les ports Docker liés à `127.0.0.1` ; PostgreSQL non publié (réseau Docker interne) ; `docker ps` ne montre aucun `0.0.0.0` hors Nginx.
+- **Éditeur n8n non exposé** : accès par tunnel SSH pour le développeur seul. Nginx ne publie que le chemin nommé du webhook des devis du site ; les webhooks de l'archive ne sont joignables que depuis Nginx en `127.0.0.1`.
+- NocoDB sur son sous-domaine en HTTPS, inscription fermée (variable à vérifier), partage public désactivé ou absent.
+- **`/piece/<id>` et `/apercu/<n>`** (sous-domaine distinct de NocoDB) : authentification Nginx **avant** tout traitement ; `limit_req` ; format vérifié par Nginx (`^/piece/FT-(PC|TS)-[0-9]{4}-[0-9]{5}$`, `^/apercu/[0-9]{1,12}$`) ; requête transmise au webhook n8n interne avec le nom de l'utilisateur authentifié ; n8n lit l'empreinte par requête paramétrée et répond `X-Accel-Redirect: /_objets/<sha256>.pdf` vers un emplacement Nginx `internal` (en-tête de réponse personnalisé : à vérifier sur la version de n8n ; repli : liens `par-id/<id>.pdf` créés par H2 et servis par `alias`). Sans authentification : 401, sans `Location`, identique pour tout identifiant. Inconnu, mal formé, annulé : même 404 générique. Le chemin réel n'apparaît jamais au navigateur.
+- En-têtes sur l'archive : `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` ; sur les fichiers : `Content-Type: application/pdf` forcé, `Content-Disposition: inline`, `Content-Security-Policy: sandbox`.
+- n8n et NocoDB à la dernière version corrective avant le go ; abonnement aux avis de sécurité.
+- **Cloisonnement de n8n (ARC-041)** : webhook des devis protégé par un en-tête secret ; identifiants d'IA du site réservés à ses workflows (projets séparés si la version les gère) ; aucun workflow de l'archive ne contient de nœud vers un service extérieur hors SMTP (vérifié sur les exports). Option ultérieure : instance n8n dédiée.
 
-### 8.3 Droits sur les fichiers
-- `/srv/archive/fichiers/` : écriture par l'utilisateur du conteneur n8n seulement ; fichiers en lecture seule après rangement ; lecture par Nginx.
-- `/srv/archive/depot/` : compte SFTP du poste de numérisation, restreint à ce répertoire (pas de shell).
-- Nginx : `/fichiers/` en HTTPS, authentification par utilisateur (un compte par personne autorisée), pas de liste de répertoires, en-tête `X-Content-Type-Options: nosniff`, journal d'accès avec le nom de l'utilisateur (base de US-SYS-12). Le mécanisme exact (authentification Nginx simple ou contrôle délégué) est à choisir à ARC-008.
+### 8.3 Secrets
+- Fichiers d'environnement `600 root` ; seul root dans le groupe `docker` (les variables sont lisibles par `docker inspect`).
+- `N8N_ENCRYPTION_KEY` et le secret de NocoDB **fixés explicitement**, imprimés au coffre, vérifiés lors de la restauration (identifiants n8n lisibles).
+- `N8N_BLOCK_ENV_ACCESS_IN_NODE=true` ; aucun secret écrit en dur dans un nœud ; exports de workflows passés à `gitleaks` avant tout commit.
+- **Jetons NocoDB (SEC-11)** : n8n n'utilise aucun jeton NocoDB pour l'archive (SQL direct) ; s'il en faut un pour lire le journal d'activité de NocoDB, il vient d'un compte en lecture seule sur la base de l'archive. Le jeton du site est recréé depuis un compte de service NocoDB limité à la base du CRM des devis ; l'ancien est révoqué ; essai : ce jeton ne lit aucune table de l'archive. Cette action modifie la configuration de production du site : elle se fait avec l'accord explicite de la Direction (ARC-045).
+- Clé privée de déchiffrement des sauvegardes : jamais sur le VPS (§8.6).
+- Rotation de tous les secrets utilisés pendant la construction le 30 ou 31 octobre et à chaque départ.
 
-### 8.4 Sauvegarde 3-2-1 concrète
+### 8.4 Entrées non fiables
+- **Chemins** : seuls `objets/<sha256>`, `quarantaine/<id_lot>/<sha256>`, `entree/<id_lot>/` et les chemins calculés en SQL (§4.7) sont utilisés ; `nom_origine`, `code_lot`, `tiers` n'entrent jamais dans un chemin ; contraintes `CHECK` sur les référentiels ; vérification du préfixe absolu avant toute écriture.
+- **Commandes** : nœud Execute Command désactivé (`NODES_EXCLUDE`, par défaut sur les versions récentes : à vérifier) ; empreinte par le nœud Crypto ou le nœud Code avec le module `crypto` (à vérifier) ; `pg_dump` et opérations système dans les tâches de l'hôte seulement.
+- **SQL** : requêtes paramétrées ou fonctions ; essai avec apostrophe, point-virgule, guillemets et chaîne SQL dans `tiers` et `libelle`.
+- **CSV d'écritures** : dépôt par un compte SFTP « imports » distinct, réservé au comptable, chroot sans shell ; `depose_par` enregistré ; validation stricte (§5.1 W05) ; confirmation au-delà du seuil.
+- **Injection de formules** : à l'export, toute cellule texte commençant par `= + - @`, tabulation ou retour chariot est préfixée d'une apostrophe ; à la saisie, `tiers` ne peut pas commencer par ces caractères ; à l'import, `libelle` est refusé dans ce cas.
+- **Poste et SFTP** : compte `internal-sftp` chroot, sans shell ni redirection de ports, clé dédiée au poste et révocable, quota disque ; disque du poste chiffré (BitLocker si Windows, à confirmer) ; script versionné sans mot de passe ; lot `_PRET` déplacé immédiatement hors de la zone SFTP.
+- **Fichiers** : type reconnu par les octets de tête ; taille maximale 20 Mo dès le premier lot (Défaut D4) ; pièces ouvertes dans le lecteur du navigateur ; lecteurs PDF des postes à jour.
 
-| Copie | Support | Lieu | Contenu | Fréquence | Rétention |
-|---|---|---|---|---|---|
-| 1 (production) | Disque SSD du VPS | Datacentre Hostinger | Base + fichiers | Continu | — |
-| 2 | Bucket GCS, versionnement activé, verrou de rétention si l'offre le permet (à vérifier) | Hors site (Google) | Dumps quotidiens des trois bases, export des workflows, fichiers ajoutés (copie incrémentale) | Chaque nuit 1 h (après le dump) | 30 dumps quotidiens + 1 par mois ; fichiers jamais supprimés |
-| 3 | Disque externe USB | Bureau Foga-Tech, débranché hors copie, rangé fermé à clé | Copie complète depuis GCS (pas depuis le VPS) | Chaque vendredi (point hebdomadaire) | Toutes les versions tant que la place le permet |
+### 8.5 Droits sur les fichiers
+`depot/` : compte SFTP du poste ; `imports/` : compte SFTP « imports » ; `entree/`, `quarantaine/`, écriture initiale dans `objets/` : utilisateur du conteneur n8n ; `objets/` scellés par H1 ; `fichiers/` : liens créés par H2, lecture par Nginx seulement par `internal`. Aucun accès direct à `/fichiers/` par URL : tout passe par `/piece/<id>`.
 
-Les deux supports sont : disques en ligne (VPS, GCS) et disque hors ligne (USB). Le chiffrement des copies 2 et 3 est recommandé (données comptables et personnelles) ; s'il est retenu, la clé est gérée selon §8.2. Le snapshot éventuel du VPS proposé par Hostinger (à vérifier) ne compte pas comme copie : il est au même endroit.
+### 8.6 Sauvegarde 3-2-1
 
-### 8.5 Restauration
-Procédure écrite d'une page (ARC-015) : installer PostgreSQL, n8n et NocoDB sur une machine vierge ; récupérer depuis GCS le dernier dump et les fichiers ; restaurer ; reconnecter NocoDB ; vérifier nombres de pièces par statut, compteurs, 20 empreintes, ouverture de 3 pièces depuis leur identifiant. Durée mesurée et notée. Exécutée à la main le 14 octobre (avant l'archivage en masse) et le 30 octobre ; vérification automatique chaque semaine (W07b).
+| Copie | Support | Lieu | Contenu | Fréquence |
+|---|---|---|---|---|
+| 1 | SSD du VPS | Datacentre Hostinger | Production | Continu |
+| 2 | Bucket GCS | Hors site | Objets nouveaux, registre, journaux PostgreSQL et Nginx, puis dump des bases (`archive_compta` et métadonnées NocoDB et n8n), chiffrés | H4 : nuit + toutes les 2 h en S43–S44 (Défaut D9) ; registre chaque minute |
+| 3 | Disque externe chiffré | Bureau, débranché, sous clé | Copie **incrémentale** des objets chiffrés depuis GCS (seulement les nouveaux, empreinte vérifiée) | Chaque vendredi |
 
-### 8.6 Supervision
-W11 (intérieur) + une sonde extérieure au VPS (par exemple une instance Uptime Kuma, citée dans `DEPLOY-KVM2.md`, sur une autre machine, ou un service de surveillance externe : **à choisir**) qui alerte si NocoDB ou n8n ne répond plus. Un serveur arrêté ne peut pas signaler sa propre panne.
+- **Chiffrement à clé publique** (`age` ou `gpg`, à installer : à vérifier) : le VPS n'a que la clé publique ; la clé privée est imprimée en deux exemplaires au coffre (deux lieux) et n'est sortie que le temps d'une restauration.
+- **Ordre** : fichiers d'abord, dump ensuite ; la vérification de restauration contrôle que chaque objet cité par le dump existe dans la copie. `entree/` et `registre_ids/` sont inclus.
+- **GCS** : noms d'objets uniques (date, heure, empreinte), jamais réécrits ; création avec précondition « n'existe pas » (un objet déjà présent = succès) ; compte de service avec le seul droit de création d'objets (rôle exact à vérifier) ; essai consigné : une suppression **et** un écrasement échouent ; règle de rétention sur le bucket (Défaut D9 : 400 jours pour les dumps ; fichiers : durée de conservation légale, D14), **verrouillée** une fois la durée confirmée (J12) ; accès public interdit ; accès uniforme ; versionnement activé ; double authentification sur le compte propriétaire.
+- **Copie 3** : identifiant GCS en **lecture seule**, distinct, sur le seul poste qui fait la copie ; les fichiers étant déjà chiffrés, le disque l'est aussi par BitLocker (à confirmer selon le système).
+- Les instantanés Hostinger (à vérifier) réduisent la durée de restauration mais ne comptent pas comme copie.
 
-### 8.7 Environnement de test (US-SYS-10)
-Même composition (PostgreSQL, NocoDB, n8n, mêmes versions) dans un fichier de composition Docker sur le poste du développeur, ou sur le VPS sous un autre nom de projet, d'autres ports et une autre racine `/srv/archive-test/` si la mémoire le permet (à vérifier, ARC-001). Données de test : 50 pièces fictives, pas de copie des pièces réelles sur un poste non chiffré. Aucun changement de workflow ou de schéma n'est fait en production sans avoir tourné en test ; les migrations SQL sont numérotées et rejouables.
+### 8.7 Restauration et recalage
+Procédure écrite (ARC-015) : machine de restauration à disque chiffré (environnement de test du VPS ou machine dans le nuage ; le poste du bureau ne sert qu'à lire un échantillon) ; clé privée sortie du coffre ; restauration des objets puis du dump ; **recalage obligatoire (ADR-03)** ; vérifications : comptes par statut, compteurs = maximum observé, 20 empreintes, 3 pièces ouvertes par `/piece/<id>`, identifiants n8n lisibles ; durée notée ; effacement des données restaurées hors VPS noté au procès-verbal. Restaurations complètes : avant l'archivage en masse (ARC-015) et le 30 octobre (ARC-034).
 
-### 8.8 Mode dégradé
-- **Coupure de réseau au bureau** : la numérisation continue dans `A_ENVOYER/` ; l'envoi reprend au retour du réseau ; le tri attend. Une fiche papier par lot (code du lot, nombre de pièces, nom) sert de trace.
-- **Coupure d'électricité au bureau** : onduleur pour le poste et le scanner (à acheter, prix non chiffré) ; un lot interrompu est renvoyé entier (idempotent).
-- **Serveur indisponible** : rien n'est perdu côté poste (les lots locaux ne sont supprimés qu'après ingestion et sauvegarde) ; les originaux papier restent dans leur boîte de lot ; à la reprise, W02 et W01 reprennent les éléments en cours.
-- **Le papier n'est jamais détruit** pendant le chantier (et pas avant la réponse de l'expert-comptable sur la durée de conservation, J12).
+### 8.8 Supervision et objectifs de reprise
+Sonde externe gratuite (service de surveillance HTTP, à choisir, D14) **avant le go**, sur NocoDB et sur `/piece/` (401 attendu) ; alerte disque H6 ; W09. Objectifs (Défaut D9) : perte maximale admise (RPO) 2 h pendant S43–S44 et 24 h ensuite, registre des identifiants à 1 minute ; durée de restauration (RTO) 1 jour ouvré. Supervision interne W11, rapport W10 et restauration automatique W07b : reportés (§11).
 
-### 8.9 Journal d'exploitation
-Document d'une page : qui redémarre quoi, commandes de santé, où sont les journaux (n8n, NocoDB, Nginx, PostgreSQL), comment rejouer un workflow, contacts.
+### 8.9 Environnement de test
+Composition Docker sur le poste du développeur (ports liés à `127.0.0.1`, mots de passe propres, jamais réutilisés en production), mêmes versions, `prefixe_identifiant = FT-TS`, PDF fictifs marqués « SPÉCIMEN » ; aucune pièce réelle sur un poste non chiffré.
+
+### 8.10 Mode dégradé
+Coupure réseau : la numérisation continue, l'envoi reprend ; coupure électrique : onduleur (à acheter), lot renvoyé entier ; serveur indisponible : lots locaux conservés jusqu'à `Ingere` et sauvegarde suivante, papier conservé ; reprise automatique des lots `En_ingestion`. Aucun papier détruit avant la réponse J12.
+
+### 8.11 Journaux
+- **Journal d'audit chaîné dès le go** : ancre de la nuit (dernière empreinte et nombre de lignes) écrite par H6 dans un objet GCS sous rétention et dans un courriel à la Direction ; toute réécriture par un administrateur devient détectable. Le développeur administrateur ne peut être qu'observé, pas empêché (Défaut D7).
+- **Journal du serveur PostgreSQL** : `log_min_error_statement = error`, `log_statement = 'ddl'`, `log_connections = on`, `log_line_prefix` avec utilisateur et base : trace des refus de déclencheur et de toute désactivation de déclencheur. Il peut contenir des valeurs (tiers, montants) : il est traité comme une donnée de l'archive (sauvegardé chiffré, accès root).
+- **Nginx** : format qui n'écrit que l'URI `/piece/<id>` et l'utilisateur (aucun nom de fichier) ; conservation 1 an, incluse dans la sauvegarde (base de US-SYS-12).
+- **n8n** : données d'exécution non conservées en cas de succès (`EXECUTIONS_DATA_SAVE_ON_SUCCESS=none`), purge courte ; `erreurs_workflow.code` ne contient jamais de chemin.
+- **Journal d'exploitation** d'une page : redémarrages, ouvertures de `arch_owner`, restaurations, rotations.
 
 ## 9. Correspondance exigences → conception
 
 | Exigence | Élément de conception | Couverture |
 |---|---|---|
-| US-ARC-01 Enregistrer une pièce avec identifiant unique | `pieces`, ADR-03, W01–W03 | Couverte |
-| US-ARC-02 Citer la pièce dans l'écriture | Option A §7.3 (ERP) ; option B `piece_id_saisi` | **Dépend de l'ERP** (option A) ; partielle en option B (la citation est faite après saisie, dans NocoDB) |
-| US-ARC-03 Ouvrir pièce ↔ écriture en moins de 2 s | W08 + lien ERP ; vue `ecritures` liée à `pieces` | Pièce → écriture : couverte dans NocoDB ; écriture → pièce : dépend de l'ERP ; 2 s : à mesurer |
-| US-ARC-04 Listes des écarts dans les deux sens | W06 (E01–E04), vues, export CSV de NocoDB (à vérifier) | Couverte |
-| US-ARC-05 Pièce manquante | `pieces_manquantes`, W04, T7, T8 | Couverte ; texte de l'attestation à rédiger |
-| US-ARC-06 Dépôt de lot, doublons, compteur | Poste + script, W01, ADR-05, `lots_depot` | Couverte |
-| US-ARC-07 Rapprochement bancaire | `rapprochements_bancaires`, E09 | **Partielle** : le calcul du rapprochement est fait par le comptable (ERP ou tableur) ; l'archive le trace et le contrôle |
-| US-ARC-08 Chiffre du bilan → pièces | Vue `ecritures` par compte → lien pièce | **Partielle** : étape « poste du bilan → comptes » manuelle avec la balance |
-| US-ARC-09 PDF de l'ERP archivés automatiquement | F4 §7.1 | **Non couverte avant le 31 octobre** (dépend du code de l'ERP) |
-| US-ARC-10 Fin de conservation | `date_fin_conservation`, paramètre | **Partielle** : durée non confirmée (10 ans OHADA selon le programme, 3 ans selon US-DIR-05 : contradiction à trancher) ; alerte prévue après le 31 octobre ; aucune suppression possible dans l'outil |
-| US-ARC-11 Tableau de bord | `v_tableau_bord`, W10 | Couverte ; « comparé au plan » nécessite le plan recalculé à J06c |
-| US-SYS-08 Alerte d'échec et file de reprise | W09, `erreurs_workflow`, W11, sonde externe | Couverte |
-| US-SYS-10 Environnement de test | §8.7 | Couverte ; capacité du VPS à vérifier |
-| US-SYS-11 Export en formats ouverts | PDF + CSV de chaque table (export hebdomadaire joint à la sauvegarde) + dump SQL | Couverte |
-| US-DIR-05 Conservation | Aucune suppression ; papier conservé | Partielle (voir US-ARC-10) |
-| Critère 1 : 100 % de l'inventaire classé ou manquant | Statuts, E07, E10, W10 | Couverte **si** l'inventaire J02 est saisi dans un tableau comparable (nombre par année et par type) ; rapprochement inventaire ↔ archive par comptage, pas pièce par pièce |
-| Critère 2 : 100 % des écritures citent une pièce | E01, E02 | Couverte, sous réserve d'un export complet des écritures |
-| Critère 3 : contrôles inverses | E01, E03 | Couverte |
-| Critère 4 : 30 pièces par année en moins de 2 min | `v_echantillon`, W08, procédure de chronométrage | Couverte ; résultat à mesurer à J14 |
-| Critère 5 : restauration avant masse et le 30 oct. | W07a, W07b, §8.5, ARC-015, ARC-034 | Couverte |
-| Critère 6 : aucun identifiant en double | ADR-03, contrainte d'unicité, E05 | Couverte |
-| Critère 7 : soldes bancaires rapprochés | `rapprochements_bancaires`, E09 | Partielle (comme US-ARC-07) |
-
-Non couvert par cette conception : US-ARC-09 avant le 31 octobre ; la traçabilité « poste du bilan → compte » ; l'identité humaine garantie par la base (§8.1) ; US-SYS-12 au-delà du journal d'accès Nginx.
+| US-ARC-01 | `pieces`, ADR-03, W01, W02 | Couverte |
+| US-ARC-02 | Option B : « Écritures à relier » ; option A : §7.3 | Partielle en option B (pas de refus à la saisie, Défaut D2) ; couverte en option A |
+| US-ARC-03 | `/piece/<id>`, `v_pieces.refs_ecritures` | Pièce → écritures : couverte ; écriture → pièce : par `/piece/<id>` depuis NocoDB, depuis l'ERP en option A ; 2 s à mesurer |
+| US-ARC-04 | E01–E04, export CSV | Couverte |
+| US-ARC-05 | `declarations_manquantes`, `declarer_piece_manquante`, `rattacher_justificatif` | Couverte ; texte de l'attestation (D14) ; relances automatiques reportées |
+| US-ARC-06 | Script du poste, W01, ADR-05 | Couverte |
+| US-ARC-07 | `rapprochements_bancaires`, `v_rapprochements`, E09 | Partielle, Défaut D8 : solde comptable calculé, appariement ligne à ligne dans l'état joint |
+| US-ARC-08 | `v_balance` → écritures → `/piece/<id>` | Couverte depuis le compte ; « poste du bilan → comptes » avec la balance, hors outil |
+| US-ARC-09 | F4 | **Hors périmètre du 31 octobre, Défaut D6** ; repli : dépôt manuel des PDF |
+| US-ARC-10 | `date_fin_conservation`, aucune suppression | Partielle : durée non confirmée (D14) ; alerte reportée |
+| US-ARC-11 | `v_tableau_bord`, `plan_avancement` | Couverte (vue) ; courriel quotidien reporté |
+| US-SYS-08 | W09, `erreurs_workflow`, sonde externe | Couverte |
+| US-SYS-10 | §8.9, préfixe FT-TS | Couverte |
+| US-SYS-11 | CSV par table protégés, PDF, dump | Couverte (ARC-033) |
+| US-DIR-05 | Aucune suppression ; rétention GCS ; papier conservé | Partielle (D14 ; 3 ans contre 10 ans à trancher) |
+| Critère 1 | `inventaire`, E11, E07, E10 | Couverte par comptage (pas pièce par pièce) |
+| Critère 2 | E01, E02, E12 ; justification Défaut D5 | Couverte si l'export d'écritures est complet |
+| Critère 3 | E01, E03, E04 (délai 0 à J14) ; saisie calculée | Couverte |
+| Critère 4 | `v_echantillon` stratifié, `/piece/<id>` | Couverte ; tolérance D15 ; mesure J14 |
+| Critère 5 | H4, chiffrement, ARC-015, ARC-034, recalage | Couverte |
+| Critère 6 | ADR-03, registre hors base, recalage, E05 | Couverte, y compris après restauration |
+| Critère 7 | `v_rapprochements`, E09 | Partielle, Défaut D8 |
 
 ## 10. Risques techniques et hypothèses ouvertes
 
-| N° | Risque ou hypothèse | Effet | Parade |
-|---|---|---|---|
-| R1 | La version installée de NocoDB ne gère pas les sources PostgreSQL externes, ou mal | ADR-01 option 3 impossible | ARC-002 le 12 oct. ; repli option 2 |
-| R2 | NocoDB et n8n ne sont pas en conteneurs, ou leur base est déjà en SQLite non persistante | Migration plus longue ; données actuelles du CRM des devis en jeu | ARC-001 relève l'existant ; sauvegarde complète avant toute migration |
-| R3 | Les rôles NocoDB ne restreignent pas par table ou par champ | Une aide au tri peut techniquement modifier une table qui ne la concerne pas | Règles critiques dans la base (§4.4) ; journal ; peu d'utilisateurs ; vérification par l'échantillon |
-| R4 | Identité humaine déclarative dans le journal et pour les quatre yeux | Preuve faible en cas de litige | Journal d'activité de NocoDB si disponible ; comptes nominatifs ; revue de sécurité |
-| R5 | Le développeur seul porte aussi la mise en ligne de l'ERP (J03 à J08) | Glissement de S42 | `02-BACKLOG.md` : périmètre minimal avant le 16 oct. ; le reste ordonné après |
-| R6 | Espace disque ou mémoire du VPS insuffisant (volume inconnu) | Arrêt de l'ingestion ; pas d'environnement de test sur le VPS | ARC-001 ; alerte à 80 % ; test sur le poste |
-| R7 | Option A non livrée par l'ERP à temps | Repli option B, travail du comptable accru | Décision le 15 oct. ; format CSV commun |
-| R8 | Les écritures des exercices passés ne sont pas dans l'ERP | F1 produit à la main depuis Excel ; qualité variable | Validation stricte de W05 ; source `EXCEL` |
-| R9 | Exercice comptable différent de l'année civile ; année du compteur différente de l'année de la pièce | Identifiants incohérents avec les dossiers | À confirmer à J04 avant la première attribution (irréversible ensuite) |
-| R10 | Qualité des scans (montants illisibles, plusieurs pièces dans un fichier) | Rejets et renumérisation | Liste de contrôle à la collecte, formation J06d, T4 |
-| R11 | Capacités de n8n (calcul d'empreinte, accès disque, commande système) différentes de celles supposées | W01, W02 à adapter | ARC-002 ; repli : petit script sur l'hôte appelé par planification |
-| R12 | Durée de conservation contradictoire (3 ans contre 10 ans) | Destruction trop tôt | Aucune suppression possible ; papier conservé ; J12 |
-| R13 | Coût de GCS au volume réel et prix du disque externe et de l'onduleur | Budget | Non chiffré ici ; à chiffrer après l'inventaire |
-| R14 | Ouverture en moins de 2 s non tenable sur le réseau du bureau | US-ARC-03 non tenue | Mesure à J06 ; taille de scan raisonnable (résolution à fixer à J04) |
-| R15 | Version du site et du CRM des devis touchée par la migration de NocoDB | Panne du site | Faire la migration hors heures, sauvegarde préalable, test du formulaire devis après |
+| N° | Risque ou hypothèse | Parade |
+|---|---|---|
+| R1 | NocoDB ne gère pas bien une source PostgreSQL externe (liens, vues, messages d'erreur) | ARC-002 le 12 oct. ; repli ADR-01 option 2 ; D1 |
+| R2 | Migration et volumes touchent le CRM des devis du site | Sauvegarde préalable, hors heures, essai du formulaire devis ; migration des métadonnées reportée |
+| R3 | Rôles NocoDB grossiers | Matrice de droits en base (§4.5) |
+| R4 | Identité humaine non fournie par NocoDB | §4.3 ; risque signé (D7) |
+| R5 | Charge du développeur seul | Backlog v0.2 ; D2 |
+| R6 | Disque ou mémoire insuffisants | ARC-001 ; H6 ; test sur le poste |
+| R7 | Option A non livrée | Option B par défaut |
+| R8 | Écritures passées hors ERP | Source `EXCEL`, une source par exercice (D16) |
+| R9 | Année du compteur, exercices | D3 avant la première attribution (irréversible ensuite) |
+| R10 | Qualité des scans | Fiche de collecte, formation, T4 |
+| R11 | Capacités de n8n différentes (en-tête `X-Accel-Redirect`, Crypto, accès disque, données d'exécution) | ARC-002 ; replis cités |
+| R12 | Durée de conservation contradictoire | Aucune suppression ; rétention verrouillée seulement après J12 |
+| R13 | Coûts GCS, disque, onduleur non chiffrés | À chiffrer après l'inventaire (D9) |
+| R14 | Ouverture en moins de 2 s non tenue | Mesure à J06 |
+| R15 | Liens symboliques mal gérés par l'outil de copie ou par Nginx | Les liens ne sont qu'une présentation : la copie porte sur `objets/` et la base ; ouverture par `X-Accel-Redirect` |
+| R16 | Un administrateur malveillant | Observé, pas empêché : ancre externe du journal, journal du serveur (D7) |
 
-Hypothèses ouvertes à lever par un humain : versions de n8n et NocoDB ; mode d'installation ; espace disque ; année du compteur ; exercices concernés (2023–2025 ou 2024–2026) ; format des noms de mois ; matériel de numérisation et format PDF ; option A ou B ; texte de l'attestation interne ; durée de conservation ; chiffrement des sauvegardes ; outil de sonde externe ; liste nominative des utilisateurs.
+Hypothèses ouvertes : versions et installation de n8n et NocoDB ; espace disque ; système du poste ; outils `age` et `chattr` ; rôle GCS exact et offre de rétention ; outil de sonde ; liste nominative des utilisateurs.
+
+## 11. Reportés
+
+| Constat | Ce qui est reporté | Raison |
+|---|---|---|
+| RS-35 | W10 (courriel quotidien), W11 (supervision interne), W07b (restauration automatique hebdomadaire) | Les vues, la sonde externe, H6 et les deux restaurations manuelles tiennent le critère 5 ; à faire après le 31 octobre |
+| RS-11 | Migration des métadonnées de NocoDB et de n8n vers PostgreSQL | Hors périmètre de la fiche ; volumes persistants suffisants en S42 |
+| RS-09 (partie) | Relances automatiques des demandes de duplicata (W04) | La vue E07 suffit pour J13 |
+| RS-06 (partie) | Identité nominative garantie par la base | Impossible sans changement d'outil ; D7 |
+| SEC-20 (partie) | Ne plus journaliser le corps des réponses NocoDB dans le code du site (`api/lib/nocodb.js`) | Hors des deux fichiers et hors du périmètre de l'archive ; tâche ARC-052 |
+| SEC-23 | `.gitignore` (`.env.*`, clés, exports) et port de développement lié à `127.0.0.1` dans `docker-compose.yml` | Autres fichiers ; tâche ARC-052 avec accord |
+| SEC-24 (partie) | Restriction Nginx et NocoDB par type sensible | `7_Paie` reste inactif jusqu'à ARC-040 |
+| — | Table `ecarts` avec cycle de vie, flux F2 et F4, option IA, chaînage déjà fait | Après le 31 octobre |
+
+## 12. Décisions D1–D16 : options par défaut retenues
+
+| N° | Option par défaut dans cette conception |
+|---|---|
+| D1 | Base dédiée sous NocoDB ; métadonnées NocoDB et n8n migrées après le 31 octobre |
+| D2 | S42 sans travail sur l'ERP ; démarrage en option B ; option A visée le 21 ; date du go : deux scénarios dans le backlog, non tranchés |
+| D3 | Année du compteur = année de `date_piece` ; exercice civil ; exercices 2024–2026 ; pièces 2023 admises pour les soldes d'ouverture |
+| D4 | `sens` (Normal/Avoir), `sans_montant`, `date_estimee` ; PDF seul, 20 Mo ; PDF protégé refusé ; devise d'origine non gérée (montant FCFA de l'écriture) |
+| D5 | Écriture justifiée seulement par l'identifiant d'une pièce `Classee` ou `Manquante` |
+| D6 | US-ARC-09 hors du 31 octobre ; REC-152 à REC-157 en vague « Post » |
+| D7 | Compte NocoDB réel si disponible ; sinon déclaratif, risque signé ; développeur observé par l'ancre du journal |
+| D8 | Rapprochement calculé par le comptable, état joint ; solde comptable calculé dans l'outil ; relevés `5_Banque` dans le périmètre |
+| D9 | RPO 2 h en S43–S44, 24 h ensuite ; RTO 1 jour ouvré ; chiffrement par clé publique ; rétention des dumps 400 jours ; disque et onduleur achetés avant le 14 |
+| D10 | Contrôleur ≠ trieur et ≠ saisisseur |
+| D11 | Correction versionnée, appliquée par le responsable de validation ; changement d'année = annulation et nouvelle pièce |
+| D12 | Noms de mois sans accents (`02_Fevrier`) ; codes de type de §4.2 |
+| D13 | Liste nominative signée ; exportation réservée au développeur et au responsable de validation ; retrait de droits immédiat |
+| D14 | Texte de l'attestation à fournir ; sonde externe gratuite ; IA désactivée ; conservation en attente de J12 |
+| D15 | 30 sur 30 à l'échantillon ; REC-039 requalifié (parade `pris_par`) |
+| D16 | Une source d'écritures par exercice ; balance F1b facultative |
