@@ -398,3 +398,245 @@ Juste après le go (avant la fin de S43) : la règle des quatre yeux réellement
 | Cadre légal (protection des données personnelles au Congo, durée de conservation OHADA) | SEC-21, SEC-24, rétention | Juriste, expert-comptable (J12) |
 
 **Ce que cet audit ne couvre pas** : test d'intrusion réel ; revue du code (inexistant) ; sécurité du reste du site web au-delà de son lien avec NocoDB et n8n ; sécurité physique des boîtes de papier.
+
+---
+
+## 5. Vérification de la version 0.2
+
+Contre-vérification indépendante de `01-CONCEPTION.md` v0.2 et `02-BACKLOG.md` v0.2, faite le 11 octobre 2026. Chaque verdict s'appuie sur le texte de la v0.2, pas sur le tableau « Traitement des revues » de l'auteur. Les sections citées sont celles de la v0.2.
+
+Verdicts : **Résolu** (correctif présent, suffisant et techniquement juste) ; **Partiellement** (correctif présent mais incomplet, ou reporté après le go) ; **Non résolu** ; **Régression** (la v0.2 aggrave le constat).
+
+### 5.1 Verdict par constat
+
+#### Constats critiques et élevés
+
+| Constat | Verdict | Ce que fait la v0.2 (section) | Ce qui manque ou est faux |
+|---|---|---|---|
+| SEC-01 W08 public | **Résolu** | W08 supprimé (§5.1). `/piece/<id>` et `/apercu/<n>` authentifiés par Nginx **avant** tout traitement, format vérifié par Nginx, `limit_req`, `X-Accel-Redirect` vers un emplacement `internal`, 401 sans `Location`, 404 générique (§8.2). Test d'énumération dans ARC-024. | Points résiduels traités dans les nouveaux risques NR-09 (publication du webhook) et NR-10 (cache, droits par rôle). |
+| SEC-02 journal et interdictions contournables | **Partiellement** | Aucun outil en superutilisateur ni en propriétaire. `arch_owner` et `arch_fonctions` en `NOLOGIN`. `TRUNCATE` révoqué et déclencheur par instruction. Journal chaîné dès le go. Ancre chaque nuit sur GCS et par courriel. `log_statement = 'ddl'` (§4.4, §4.5, §8.11). Tests (h) et (k) dans ARC-007. | **Personne ne vérifie la chaîne** : aucune tâche ne recalcule les empreintes ni ne les compare à l'ancre (H5 ne le fait pas, §5.2). La règle de rétention n'est verrouillée qu'après J12 : d'ici là, l'administrateur du projet GCS peut la retirer. `acteur_db` n'est pas défini : s'il vient de `current_user`, toutes les lignes écrites par une fonction `SECURITY DEFINER` porteront `arch_fonctions`. Voir NR-08. |
+| SEC-03 empreinte réécrite | **Résolu** | Empreinte et taille non modifiables par personne. `id_piece`, `chemin`, `nom_fichier` écrits seulement par les fonctions. `arch_n8n` n'a que SELECT sur `pieces`. H5 compare à `pieces` **et** à `fichiers_deposes` (§4.4, §4.5, §5.2). | Fenêtre d'une minute avant le scellement et objet préexistant non revérifié : voir NR-11 (faible). |
+| SEC-04 quatre yeux | **Partiellement** | Compte NocoDB réel si la version le permet. Sinon : champs de décision masqués, E13, échantillon surpondéré, risque signé (D7) (§4.3, §5.3). ARC-047 après le go. | `trie_par` et `valide_par` restent modifiables par `arch_nocodb` (§4.5). La base ne distingue toujours pas l'aide au tri du valideur. Correctif proposé en NR-03 (deux rôles de base). |
+| SEC-05 droits NocoDB | **Partiellement** | La matrice table × rôle (§4.5) est juste et précise. | 1. **Les fonctions restent exécutables par tous** (NR-01) : PostgreSQL donne `EXECUTE` à `PUBLIC` sur toute nouvelle fonction. La case « — » de la matrice ne retire donc pas ce droit à `arch_nocodb`. 2. Les actions « réservées au responsable de validation » ne sont pas vérifiées (NR-03). |
+| SEC-06 traversée de chemin | **Partiellement** | Aucun nom fourni par un humain ou par le poste dans un chemin. Format de `code_lot`. `CHECK` sur les référentiels. `racine_archive` en variable d'environnement. Préfixe revalidé (§4.2, §4.6, §4.7, §8.4). | La traversée **en écriture** est fermée. Restent la lecture d'un chemin du manifeste (« sous-dossiers admis », §5.1 W01 étape 3) et les liens symboliques déposés par SFTP : voir NR-04. |
+| SEC-07 commandes système | **Résolu** | Execute Command désactivé, empreinte par Crypto ou Code, opérations système dans les tâches de l'hôte, sans interpréteur de commandes ni valeur lue en base (§5.1, §5.2, §8.4). | Préciser : `NODE_FUNCTION_ALLOW_BUILTIN=crypto` seulement, jamais `*`. Le montage du disque dans n8n est trop large : voir NR-05. |
+| SEC-08 exposition | **Résolu** | Seuls 22 et 443, ports Docker sur `127.0.0.1`, éditeur n8n par tunnel SSH, inscription fermée, mises à jour, `nmap` extérieur (§8.2, ARC-042). | Publication exacte du webhook devis : voir NR-09. |
+| SEC-09 SQL et CSV | **Résolu** | Paramètres liés ou fonctions, aucun `{{ }}` dans le SQL, compte SFTP « imports » distinct, validation stricte par colonne, une transaction, seuil de confirmation (§5.1 W05, §8.4, ARC-023). | Incohérence : la confirmation d'un import `A_confirmer` « dans NocoDB » est impossible, car `arch_nocodb` n'a que SELECT sur `imports_ecritures` (§4.5). Elle sera réglée avec NR-03. |
+| SEC-10 sauvegardes | **Partiellement** | Correctif juste sur l'essentiel (§8.6, ARC-014) : clé publique seule sur le VPS ; noms uniques avec précondition « n'existe pas » ; compte de service en création seule ; essai de suppression et d'écrasement ; accès public interdit ; copie 3 en lecture seule et chiffrée. | 1. **Une règle de rétention s'applique au bucket entier** : on ne peut pas y mettre 400 jours pour les dumps et la durée légale pour les fichiers (§8.6). 2. Vérifier « l'objet distant existe et a la bonne taille » demande un droit de lecture que le rôle en création seule n'a pas. 3. Le verrou n'est posé qu'après J12. Voir NR-07. |
+| SEC-11 jetons NocoDB | **Résolu** (sous condition) | n8n sans jeton NocoDB. Jeton du site recréé sur un compte limité au CRM, l'ancien révoqué, essai de refus (§8.3, ARC-045). | Dépend de l'accord de la Direction (configuration de production du site). Sans accord, le constat reste ouvert et doit être noté au go. |
+
+#### Constats moyens et faibles
+
+| Constat | Verdict | Section v0.2 | Remarque |
+|---|---|---|---|
+| SEC-12 secrets générés | **Résolu** | §8.3, ARC-005, ARC-015 | Clés fixées, au coffre, vérifiées à la restauration ; seul root dans le groupe `docker`. |
+| SEC-13 type et taille | **Résolu** | §5.1 W01, §8.2, §8.4 | Octets de tête, 20 Mo, sous-domaine distinct. **Correction de mon propre correctif** : l'en-tête `Content-Security-Policy: sandbox` peut empêcher le lecteur PDF intégré du navigateur (Chrome notamment) d'afficher le fichier. À essayer à ARC-024 ; s'il bloque, le retirer et garder sous-domaine distinct, `nosniff` et `Content-Type` forcé, qui suffisent. |
+| SEC-14 immuabilité des fichiers | **Partiellement** | ADR-02, §4.6, §5.2 H1 | Le principe est juste (objets par empreinte, liens). Mais `root:root` et `chattr +i` exigent root, alors que §5.2 annonce « un utilisateur dédié ». Le répertoire `objets/` doit appartenir à root : avec le bit collant, le **propriétaire du répertoire** peut encore supprimer. Voir NR-02. |
+| SEC-15 double authentification | **Résolu** | §8.1, ARC-044 | Hostinger, Google, GitHub avant le go. |
+| SEC-16 injection de formules | **Résolu** | §8.4, §4.1, §5.1 W05 | Contrôlé à la saisie, à l'import et à l'export. |
+| SEC-17 supervision, RPO/RTO | **Résolu** | §8.8, ARC-044 | Sonde avant le go ; RPO et RTO par défaut (D9) ; ARC-019 réduite à une relecture. |
+| SEC-18 n8n partagé | **Partiellement** | §8.2, ARC-041 (J10) | ARC-041 vient **après** le go : pendant une semaine, l'archive tourne dans la même instance que le webhook devis non authentifié et les identifiants d'IA. Acceptable seulement si la vérification « aucun nœud extérieur dans les workflows de l'archive » est faite dès ARC-019. |
+| SEC-19 poste et SFTP | **Résolu** | §8.4, ARC-008, ARC-009 | Plus la question des liens symboliques SFTP (NR-04). |
+| SEC-20 données dans les journaux | **Partiellement** | §8.11 ; ARC-052 reportée | Les journaux n8n et Nginx sont réglés. Le code du site est reporté après le 31 octobre. |
+| SEC-21 IA | **Résolu** | ADR-06 | Deux clés d'activation, exclusions, contrat de traitement. |
+| SEC-22 données réelles sur postes | **Résolu** | §8.7, §8.9 | — |
+| SEC-23 `.gitignore`, compose de dev | **Non résolu** | §11, ARC-052 (après le 31 octobre) | Quinze minutes de travail, alors que les secrets de production sont **créés cette semaine** (clés n8n, GCS, `age`). L'ajout de `.env.*`, `*-sa.json` et des clés à `.gitignore` devrait passer avant le go, avec l'accord de l'utilisateur. |
+| SEC-24 types sensibles | **Partiellement** | §4.2 (`7_Paie` inactif) | Bonne parade provisoire. `/apercu/<n>` ouvre toute pièce à tout compte authentifié : voir NR-10. |
+
+**Décompte** : Résolu 14 (SEC-01, 03, 07, 08, 09, 11, 12, 13, 15, 16, 17, 19, 21, 22) · Partiellement 9 (SEC-02, 04, 05, 06, 10, 14, 18, 20, 24) · Non résolu 1 (SEC-23) · Régression 0.
+
+Pour les deux critiques : SEC-01 est résolu. SEC-02 est **largement corrigé**, mais la chaîne n'est vérifiée par personne.
+
+### 5.2 Nouveaux risques introduits ou révélés par la v0.2
+
+#### NR-01 — Les fonctions `SECURITY DEFINER` sont exécutables par `arch_nocodb` (droit `PUBLIC` par défaut)
+- **Gravité** : Élevée · **Nature** : Démontré (omission) · **Preuve** : §4.4 (fonctions `SECURITY DEFINER`) ; §4.5 (« Fonctions : — » pour `arch_nocodb`, sans révocation de `PUBLIC`) ; ARC-006 et ARC-007 (pas de test d'`EXECUTE`).
+- **Scénario** : PostgreSQL accorde `EXECUTE` à `PUBLIC` sur toute fonction créée. Sans `REVOKE`, une personne qui obtient la main sur NocoDB (ou sur sa source) peut appeler toutes les fonctions sous les droits de `arch_fonctions` :
+  - `recaler_compteurs` : crée des trous ;
+  - `reintegrer_piece` : crée des pièces avec un identifiant choisi ;
+  - `valider_piece` : contourne le contrôle des quatre yeux fait dans W02 ;
+  - `annuler_piece`, `appliquer_import`.
+
+  C'est un contournement complet de la matrice SEC-05. Les déclencheurs ne bloquent rien, puisqu'ils exigent justement `current_user = arch_fonctions`.
+- **Correctif** (30 min) :
+  - `ALTER DEFAULT PRIVILEGES FOR ROLE arch_fonctions REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC` avant toute création, puis `REVOKE EXECUTE ON ALL FUNCTIONS IN SCHEMA … FROM PUBLIC`, puis un `GRANT EXECUTE` fonction par fonction selon la matrice.
+  - `SET search_path = <schéma>, pg_temp` (`pg_temp` en dernier) sur chaque fonction ; noms qualifiés dans le corps ; aucun SQL dynamique construit avec des valeurs.
+  - Au début de chaque fonction, contrôle de `session_user` (et non de `current_user`) contre la liste des rôles autorisés.
+  - `arch_admin` ne doit pas être membre de `arch_fonctions`.
+  - Test dans ARC-007 : `arch_nocodb` appelle chaque fonction et reçoit un refus de droit.
+
+#### NR-02 — H1 tourne nécessairement en root sur des noms créés par n8n : attaque par lien symbolique
+- **Gravité** : Élevée · **Nature** : Démontré (contradiction) / À vérifier (implémentation) · **Preuve** : §5.2 (« sous un utilisateur dédié ») contre H1 (« `root:root 0444` ; `chattr +i` ») ; §4.6 (`objets/`, répertoire au bit collant) ; §8.5 (n8n écrit dans `objets/`).
+- **Scénario** : seul root peut donner un fichier à root et poser `chattr +i`, donc H1 tournera en root. Elle traite des entrées de `objets/`, où n8n peut créer ce qu'il veut. Un n8n compromis crée `objets/<64 hex>.pdf` sous forme de **lien symbolique** vers `/etc/shadow`, vers la configuration de NocoDB ou vers `pgdata/…`. `chmod` et `chown` suivent le lien : H1 rend ce fichier lisible par tous, ou rend un fichier système immuable (déni de service). Un n8n compromis devient ainsi root.
+
+  Deuxième défaut : si `objets/` appartient à l'utilisateur de n8n, le bit collant ne l'empêche pas de supprimer les objets, car le propriétaire du répertoire le peut toujours.
+- **Correctif** (1 h) :
+  - H1 est un script root **minimal**, séparé de H2 à H6 (qui restent sous l'utilisateur dédié).
+  - Il ne traite que les noms `^[0-9a-f]{64}\.pdf$`. Il ouvre chaque fichier avec `O_NOFOLLOW`, refuse tout ce qui n'est pas un fichier ordinaire ou a plus d'un lien (`nlink > 1`), recalcule la SHA-256 et la compare au nom, puis applique `fchown`/`fchmod` sur le descripteur ouvert. Le chemin n'est jamais repassé à une commande.
+  - Un fichier refusé va en quarantaine et produit une alerte.
+  - `objets/` appartient à `root`, en mode `1733` (n8n peut créer, pas lister, pas supprimer).
+  - Test dans ARC-043 : lien symbolique et lien physique déposés dans `objets/` → refusés, cible intacte.
+
+#### NR-03 — Les actions « réservées » reposent sur des noms déclarés : n'importe quel compte NocoDB peut les obtenir
+- **Gravité** : Élevée · **Nature** : Démontré · **Preuve** : §4.3 (« `corriger_piece` réservée au responsable de validation », T5 et T9 par le responsable) ; §4.5 (`arch_nocodb` : INSERT sur `demandes`, `ecarts_acceptes`, `controles_pieces`, UPDATE sur `rapprochements_bancaires`) ; §4.2 (`demande_par`, `accepte_par`, `controle_par`, `valide_par` en texte) ; §5.1 W02.
+- **Scénario** : NocoDB se connecte avec un seul rôle de base, donc la base ne sait pas qui agit. L'aide au tri (rôle Editor) peut faire tout ceci :
+  - insérer une demande `Annuler` ou `Corriger` avec `demande_par = « Responsable de validation »` ; W02 l'applique ;
+  - insérer une ligne `ecarts_acceptes` : l'écart E01, E05 ou E13 sort des contrôles ;
+  - insérer un `controles_pieces` « Conforme » : la pièce apparaît « Contrôlée » ;
+  - passer un rapprochement à `Rapproche`.
+
+  Les contrôles inverses, qui sont le filet de sécurité de tout le chantier, deviennent effaçables par n'importe quel utilisateur.
+- **Correctif** (2 h, proportionné) : brancher `archive_compta` **deux fois** dans NocoDB, avec deux rôles PostgreSQL. La règle s'appuie sur l'appartenance par base de NocoDB (à vérifier à ARC-002), pas sur un nom saisi.
+  - « Archive – saisie », rôle `arch_nocodb` : tri, déclarations ; accessible à l'aide au tri et au comptable.
+  - « Archive – validation », rôle `arch_nocodb_rv` : `demandes` Annuler, Corriger et Réouvrir, `ecarts_acceptes`, `controles_pieces`, confirmation des imports, statut des rapprochements ; accessible au seul responsable de validation (et au comptable pour ce qui lui revient).
+  - Les fonctions et les déclencheurs vérifient `session_user`.
+  - Cela règle aussi l'incohérence de la confirmation d'import (SEC-09) et renforce SEC-04 : l'aide au tri ne peut plus poser de décision du tout.
+  - Si NocoDB ne permet pas de restreindre une base à certains utilisateurs : W02 vérifie le compte NocoDB réel via le journal d'activité (comme D7). À défaut, le risque est signé par la Direction et un rapport hebdomadaire des actions réservées est relu par celle-ci.
+
+#### NR-04 — Lecture hors du lot : chemins du manifeste et liens symboliques déposés par SFTP
+- **Gravité** : Moyenne · **Nature** : À vérifier · **Preuve** : §5.1 W01 étape 3 (« sous-dossiers admis ») ; §8.4 (SFTP chroot).
+- **Scénario** : OpenSSH SFTP permet de créer des liens symboliques. Le chroot ne vaut que pour le compte SFTP : n8n, lui, suit le lien hors du chroot. Un lot qui contient un lien vers un fichier du VPS, ou une ligne de manifeste `../../…`, fait lire à W01 un fichier hors du lot. S'il commence par `%PDF-`, il devient une pièce consultable par `/apercu/` ; sinon il est copié en quarantaine.
+- **Correctif** (30 min) :
+  - `Subsystem sftp internal-sftp -P symlink,hardlink` (refus de créer des liens).
+  - W01 refuse tout ce qui n'est pas un fichier ordinaire (`lstat`) et tout chemin de manifeste absolu ou contenant `..`, puis vérifie que le chemin réel reste sous `entree/<id_lot>/`.
+  - Test dans ARC-011.
+
+#### NR-05 — Le montage de `/srv/archive` dans n8n inclut `pgdata`, `registre_ids` et `sauvegardes`
+- **Gravité** : Moyenne · **Nature** : À vérifier · **Preuve** : §4.6 (`pgdata/` sous `/srv/archive`) ; §5.1 et §8.4 (« accès disque limité à `/srv/archive` »).
+- **Scénario** : la restriction d'accès aux fichiers de n8n porte sur toute la racine. Un workflow modifié (ou un n8n compromis) lit ou altère les fichiers de PostgreSQL, le registre des identifiants et les sauvegardes avant chiffrement.
+- **Correctif** (15 min) :
+  - Ne monter dans le conteneur n8n que `depot/` et `entree/` (lecture et écriture), `quarantaine/`, `objets/` (création seule, NR-02) et `imports/` (lecture seule).
+  - Ne jamais y monter `pgdata/`, `registre_ids/`, `sauvegardes/` ni `fichiers/`.
+  - Sortir `pgdata/` de l'arborescence partagée (par exemple `/srv/pgdata-archive`).
+
+#### NR-06 — Registre hors base : en clair, « ajout seul » non garanti, et source de `reintegrer_piece`
+- **Gravité** : Moyenne · **Nature** : Démontré · **Preuve** : ADR-03 (« Registre hors base », « Recalage ») ; §5.2 H3 ; §4.6.
+- **Scénario** :
+  - `registre_ids/AAAA.log` appartient à l'utilisateur de H3, qui peut le réécrire : l'« ajout seul » n'est pas imposé.
+  - Lors d'un recalage, la procédure réintègre en base toute pièce présente dans le registre et absente de la base. Une ligne ajoutée au registre local avant une restauration crée donc une fausse pièce avec un identifiant officiel.
+  - Le fichier contient en clair tiers et montants de toutes les pièces.
+- **Correctif** (30 min) :
+  - `chattr +a` sur le fichier de l'année (posé par root).
+  - Le recalage s'appuie sur les **segments GCS** déchiffrés, protégés par la rétention, et non sur le fichier local. Le fichier local ne sert qu'à la comparaison E05.
+  - Une pièce réintégrée exige que son objet existe avec la même empreinte, et elle est listée pour revue du responsable de validation.
+  - Droits du fichier : 0640, sans accès pour n8n (NR-05).
+
+#### NR-07 — Rétention GCS : un bucket, deux durées ; vérification sans droit de lecture ; verrou tardif
+- **Gravité** : Moyenne · **Nature** : Démontré · **Preuve** : §8.6 (« 400 jours pour les dumps ; fichiers : durée de conservation légale ») ; ARC-014.
+- **Scénario** :
+  - La règle de rétention d'un bucket est unique. Si elle vaut 400 jours, les fichiers pourront être supprimés après 400 jours. Si elle vaut 10 ans, les dumps le seront aussi, avec un coût qui grossit.
+  - La rétention par objet, elle, doit être activée **à la création du bucket**. Le choix doit donc être fait avant ARC-014.
+  - Contrôler la présence et la taille d'un objet demande `storage.objects.get`, que le rôle de création seule n'a pas.
+  - Tant que la règle n'est pas verrouillée (J12 au plus tôt), l'administrateur du projet peut la retirer puis supprimer.
+- **Correctif** (30 min, décision avant la création du bucket) :
+  - Soit **deux buckets** : `dumps-registre`, règle de 400 jours verrouillée dès le go puisque D9 la fixe ; `objets`, règle provisoire puis verrouillée après J12.
+  - Soit un bucket avec rétention par objet activée à la création.
+  - Donner aussi au compte de service la lecture des objets : c'est acceptable, car tout est chiffré par une clé absente du VPS.
+  - Garder l'interdiction de suppression et d'écrasement.
+
+#### NR-08 — Chaîne du journal : vérification non organisée, auteur technique mal défini
+- **Gravité** : Moyenne · **Nature** : Démontré · **Preuve** : §4.2 `journal_audit` ; §4.4 (journal) ; §8.11 (ancre) ; §5.2 H5 ; ARC-007 test (k).
+- **Scénario** :
+  - L'ancre est produite chaque nuit, mais aucune tâche ne recalcule la chaîne et ne la compare à l'ancre de la veille. Une réécriture complète du journal (chaîne recalculée de bout en bout) n'est détectée que si quelqu'un compare un jour la valeur au courriel archivé.
+  - Le « contenu canonique » n'est pas défini : deux implémentations divergentes rendraient la vérification impossible après une restauration.
+  - Si `acteur_db` vient de `current_user`, toutes les écritures faites par fonction porteront `arch_fonctions` : la distinction NocoDB / n8n est perdue.
+- **Correctif** (1 h) :
+  - H5 recalcule chaque nuit la chaîne depuis l'ancre précédente lue sur GCS ; une rupture alimente E06 et une alerte.
+  - Contenu canonique écrit noir sur blanc (champs dans un ordre fixe, `jsonb::text`, horodatage en UTC à la microseconde).
+  - `acteur_db = session_user`.
+  - Une fois par mois, le responsable de validation compare la valeur du courriel à celle que recalcule H5 (une ligne au journal d'exploitation).
+
+#### NR-09 — Publication du webhook devis et confiance dans l'en-tête d'utilisateur transmis à n8n
+- **Gravité** : Moyenne · **Nature** : À vérifier · **Preuve** : §8.2 (« Nginx ne publie que le chemin nommé du webhook des devis » ; « requête transmise au webhook n8n interne avec le nom de l'utilisateur authentifié ») ; §5.1 W08.
+- **Scénario** :
+  - Les webhooks de l'archive et celui des devis sont servis par la même instance n8n, sur le même port. Si le webhook devis est publié par un préfixe (`location /webhook/`) plutôt que par son chemin exact, le webhook `/piece` devient joignable depuis Internet, sans authentification et avec un en-tête d'utilisateur forgé.
+  - Si l'emplacement `internal` existe dans le même site Nginx, la réponse `X-Accel-Redirect` est servie : le PDF sort.
+- **Correctif** (15 min) :
+  - `location = /webhook/<chemin-devis>` (correspondance exacte), dans le seul site Nginx du site web.
+  - `/_objets/` défini seulement dans le site Nginx de l'archive.
+  - `proxy_ignore_headers X-Accel-Redirect` sur tous les autres `proxy_pass`.
+  - Chemin du webhook de l'archive non devinable, et en-tête secret partagé Nginx → n8n vérifié par le workflow.
+  - Test : depuis Internet, `/webhook/<chemin archive>` → 404.
+
+#### NR-10 — `/piece` et `/apercu` : cache, mémorisation de l'authentification, absence de droits par rôle
+- **Gravité** : Faible (Moyenne dès l'entrée de la paie) · **Nature** : Démontré · **Preuve** : §8.2, §8.1 (comptes Nginx), §4.1 (`id` sert à `/apercu/<n>`).
+- **Scénario** :
+  - Aucun en-tête de cache n'est prévu : les PDF restent dans le cache du navigateur des postes du bureau.
+  - L'authentification Nginx de base est mémorisée par le navigateur jusqu'à sa fermeture : sur un poste partagé, la personne suivante ouvre les pièces.
+  - `/apercu/<n>`, avec un numéro séquentiel, ouvre à tout compte authentifié toute pièce, quel que soit son statut ou son type ; l'aide au tri peut parcourir toute l'archive. La limitation de débit freine sans interdire.
+- **Correctif** (30 min) :
+  - `Cache-Control: no-store, private` sur `/piece/` et `/apercu/`.
+  - Consigne « fermer le navigateur » dans la fiche réflexe et session Windows par personne.
+  - `/apercu/` limité aux pièces `A_trier` et `A_valider` (vérifié par n8n, qui a le statut) ; `/piece/` pour les pièces classées.
+  - Restriction par type avec ARC-040, avant tout lot de paie.
+
+#### NR-11 — W01 « copie si absent » : un objet déjà présent n'est pas revérifié avant scellement
+- **Gravité** : Faible · **Preuve** : §5.1 W01 étape 3 ; §5.2 H1 (« chaque minute »).
+- **Scénario** : un fichier faux déposé à l'avance dans `objets/` sous le nom d'une empreinte attendue est gardé et scellé. H5 ne le signale que la nuit suivante.
+- **Correctif** : W01 recalcule l'empreinte d'un objet existant avant de l'accepter ; H1 refuse de sceller un objet dont l'empreinte diffère de son nom (NR-02).
+
+#### NR-12 — `arch_admin` : rôle de connexion permanent doté de fonctions puissantes
+- **Gravité** : Faible · **Preuve** : §4.4 (`reintegrer_piece`, `recaler_compteurs`, `changer_source_exercice`), §4.5.
+- **Correctif** : `arch_admin` en `NOLOGIN` hors recalage, comme `arch_owner` ; chaque ouverture est notée au journal d'exploitation ; `arch_admin` n'est membre d'aucun autre rôle.
+
+#### NR-13 — Table `refus` : boucle de refus et gonflement du journal
+- **Gravité** : Faible · **Preuve** : §4.4 « Refus tracés » ; §5.1 W02 (toutes les 2 min, « rejouable »).
+- **Scénario** : un élément refusé dont la décision n'est pas effacée est retraité toutes les 2 minutes. Cela fait 720 lignes `refus` et 720 maillons de journal par jour et par élément, ce qui rend le journal illisible et masque les vrais refus.
+- **Correctif** : tout refus fait passer l'élément à un état terminal (décision effacée, ou `statut = Refusee` pour `demandes` et `declarations_manquantes`) ; un même refus (fonction, objet, code) n'est consigné qu'une fois par heure.
+
+#### NR-14 — Accès à l'éditeur n8n par tunnel SSH
+- **Gravité** : Faible · **Preuve** : §8.2.
+- **Correctif** :
+  - `AllowTcpForwarding no` par défaut, `yes` seulement dans un bloc `Match User <développeur>` (les comptes SFTP l'ont déjà interdit).
+  - Gestion des utilisateurs de n8n active, avec double authentification sur le compte propriétaire (n8n la propose : à vérifier sur la version).
+  - Clé SSH du développeur protégée par une phrase de passe.
+
+**Décompte des nouveaux risques** : Élevée 3 (NR-01, NR-02, NR-03) · Moyenne 6 (NR-04 à NR-09) · Faible 5 (NR-10 à NR-14). Aucun critique.
+
+Les points de la v0.2 examinés sans nouveau risque notable :
+- **Registre copié chaque minute sur GCS** : chiffré, noms uniques, création seule. Le volume d'opérations est négligeable.
+- **Ancre** : envoyée par courriel à la Direction. C'est une bonne preuve indépendante, à condition que la boîte de la Direction conserve les messages.
+- **H3 à H6** : sous un utilisateur dédié, sans interpréteur de commandes. C'est correct, une fois H1 isolée en root (NR-02).
+
+### 5.3 Ajouts à la liste de contrôle avant le go (§3.1)
+
+Les cases du §3.1 restent valables. Ajouter :
+
+- [ ] `\df+` : aucune fonction de l'archive n'a `EXECUTE` pour `PUBLIC` ; `arch_nocodb` reçoit un refus de droit sur `recaler_compteurs`, `reintegrer_piece`, `valider_piece` (NR-01).
+- [ ] Chaque fonction `SECURITY DEFINER` a `search_path` fixé avec `pg_temp` en dernier et contrôle `session_user` (NR-01).
+- [ ] H1 isolée en root : lien symbolique, lien physique et fichier dont l'empreinte diffère du nom, déposés dans `objets/`, sont refusés et la cible reste intacte ; `objets/` appartient à root en mode `1733` (NR-02, NR-11).
+- [ ] Deux rôles NocoDB de base (`arch_nocodb`, `arch_nocodb_rv`) ou repli signé : l'aide au tri ne peut créer ni demande d'annulation, ni écart accepté, ni contrôle d'échantillon (essai) (NR-03).
+- [ ] SFTP `-P symlink,hardlink` ; lot avec lien symbolique et manifeste `../` → refusés (NR-04).
+- [ ] Conteneur n8n : aucun montage de `pgdata`, `registre_ids`, `sauvegardes`, `fichiers` (`docker inspect`) (NR-05).
+- [ ] `chattr +a` sur le registre de l'année ; recalage d'ARC-015 fait à partir des segments GCS (NR-06).
+- [ ] Choix fait **avant la création du bucket** : deux buckets, ou rétention par objet ; compte de service avec création et lecture, sans suppression ni écrasement (NR-07).
+- [ ] H5 vérifie la chaîne du journal contre l'ancre de la veille ; contenu canonique écrit ; `acteur_db = session_user` (NR-08).
+- [ ] Depuis Internet, `/webhook/<chemin de l'archive>` → 404 ; webhook devis publié par `location =` (NR-09).
+- [ ] `Cache-Control: no-store, private` sur `/piece/` et `/apercu/` ; lecteur PDF du navigateur essayé avec les en-têtes retenus (NR-10, SEC-13).
+- [ ] Vérification « aucun nœud extérieur dans les workflows de l'archive » faite dès ARC-019, sans attendre ARC-041 (SEC-18).
+- [ ] `.gitignore` complété (`.env.*`, `*-sa.json`, clés) avant la création des secrets de production, avec l'accord de l'utilisateur (SEC-23).
+
+Tâches du backlog à compléter :
+- ARC-006 : NR-01, NR-03, NR-12.
+- ARC-007 : NR-01, NR-08, NR-13.
+- ARC-008 : NR-04, NR-09, NR-10, NR-14.
+- ARC-005 : NR-05.
+- ARC-043 : NR-02, NR-06, NR-11.
+- ARC-014 : NR-07.
+- ARC-024 : NR-09, NR-10.
+- ARC-052 : à avancer avant le go pour sa partie `.gitignore`.
+
+### 5.4 Niveau de risque résiduel et points bloquants
+
+**Si la v0.2 est construite telle qu'écrite : risque ÉLEVÉ.** La v0.2 corrige bien la surface exposée, les sauvegardes, les entrées non fiables et l'essentiel de l'intégrité. Mais NR-01 (fonctions exécutables par tous) rouvre à lui seul toute la matrice de droits, et NR-02 offre un passage de n8n vers root.
+
+**Après correction des points bloquants ci-dessous (environ 5 h), risque MOYEN**, acceptable pour la mise en service. Le risque restant est celui, connu et signé, d'un administrateur unique observé mais non empêché (D7).
+
+Points encore bloquants pour la mise en service (go du 16 octobre) :
+1. **NR-01** : `REVOKE EXECUTE … FROM PUBLIC`, `GRANT` fonction par fonction, `search_path` avec `pg_temp` en dernier, contrôle de `session_user`.
+2. **NR-02** : H1 isolée en root et durcie (`O_NOFOLLOW`, fichier ordinaire, empreinte égale au nom) ; `objets/` appartenant à root.
+3. **NR-03** : les actions réservées au responsable de validation sont imposées par un second rôle de base, ou le repli est signé par la Direction avant le go.
+4. **NR-07** : décision « deux buckets ou rétention par objet » prise **avant** la création du bucket (irréversible ensuite).
+5. **NR-05 et NR-04** : montages n8n restreints ; liens SFTP interdits.
+
+Non bloquants mais à faire en S43 : NR-08 (vérification de la chaîne, avant la première ancre à comparer), NR-09, NR-10, SEC-18 (ARC-041), ARC-047 (SEC-04), SEC-23 (si l'accord est donné).
