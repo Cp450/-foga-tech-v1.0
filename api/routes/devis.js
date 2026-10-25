@@ -4,6 +4,8 @@ const { query } = require('../db')
 const { sendDevisEmail, sendClientConfirmation, sendLocationDevisEmail, sendLocationClientConfirmation } = require('../lib/mailer')
 const { generatePdf } = require('../lib/pdf')
 const { saveDevisToNocoDB } = require('../lib/nocodb')
+const { notifyDashboard } = require('../lib/notify')
+const { antispam } = require('../lib/antispam')
 
 function makeReference() {
   const y = new Date().getFullYear()
@@ -16,7 +18,10 @@ function fmtDateFr(d) {
 }
 
 // POST /api/devis_requests
-router.post('/', async (req, res) => {
+router.post('/', antispam({
+  scope: 'devis',
+  fake: () => ({ success: true, id: null, reference: makeReference(), persisted: true, emailed: true, clientConfirmed: false }),
+}), async (req, res) => {
   const {
     nom, tel, profile, email, categorie, budget, description,
     ville, quartier, surface, zone,
@@ -97,6 +102,7 @@ router.post('/', async (req, res) => {
     message: description || null,
     statut: 'Nouveau',
   })
+  notifyDashboard({ title: 'Nouvelle demande de devis', body: `${nom}${categorie ? ' — ' + categorie : ''}`, url: '/?route=activite' })
 
   // n8n — qualification IA + pipeline enrichi (parallèle, non-bloquant, dormant si var absente)
   if (process.env.N8N_DEVIS_WEBHOOK) {
@@ -137,7 +143,10 @@ router.post('/', async (req, res) => {
 })
 
 // POST /api/devis_requests/location — demande de location d'engins
-router.post('/location', async (req, res) => {
+router.post('/location', antispam({
+  scope: 'devis',
+  fake: () => ({ success: true, reference: makeReference(), emailed: true, clientConfirmed: false }),
+}), async (req, res) => {
   const {
     machines,
     dateDebut,
@@ -229,6 +238,7 @@ router.post('/location', async (req, res) => {
     message: message || null,
     statut: 'Nouveau',
   })
+  notifyDashboard({ title: 'Nouvelle demande de location', body: `${nom} — ${machines.length} engin(s)`, url: '/?route=activite' })
 
   // n8n — qualification IA + pipeline enrichi (en parallèle, non-bloquant, dormant si var absente)
   if (process.env.N8N_DEVIS_WEBHOOK) {

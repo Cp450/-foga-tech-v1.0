@@ -8,15 +8,22 @@ const NOCODB_API_TOKEN = process.env.NOCODB_API_TOKEN || ''
 const NOCODB_TABLE_ID  = process.env.NOCODB_TABLE_ID  || ''
 
 /**
- * Envoie un enregistrement de devis vers NocoDB (CRM).
- * Non-bloquant : ne lève jamais d'exception vers l'appelant.
+ * Écrit un enregistrement dans la table leads NocoDB (CRM).
+ * Ne lève jamais d'exception vers l'appelant : renvoie une promesse qui se résout
+ * TOUJOURS, à `true` si NocoDB a enregistré la ligne, sinon `false`. Les appelants
+ * « fire-and-forget » peuvent l'ignorer ; le chat s'en sert pour ne pas annoncer
+ * « message transmis » quand rien n'a été conservé.
  *
- * @param {Object} data - Champs à persister (type, nom, telephone, email, …)
+ * @param {Object} data  - Champs à persister (type, nom, telephone, email, …)
+ * @param {string} label - Libellé de log ("Devis", "Lead contact", …)
+ * @returns {Promise<boolean>}
  */
-function saveDevisToNocoDB(data) {
+const REQUEST_TIMEOUT_MS = 8000
+
+function postRecord(data, label) {
   if (!NOCODB_API_URL || !NOCODB_API_TOKEN || !NOCODB_TABLE_ID) {
     console.warn('[nocodb] Variables d\'environnement manquantes — envoi ignoré.')
-    return
+    return Promise.resolve(false)
   }
 
   const payload = JSON.stringify(data)
@@ -26,7 +33,7 @@ function saveDevisToNocoDB(data) {
     urlBase = new URL(NOCODB_API_URL)
   } catch (e) {
     console.error('[nocodb] NOCODB_API_URL invalide:', NOCODB_API_URL)
-    return
+    return Promise.resolve(false)
   }
 
   const path = `/api/v2/tables/${NOCODB_TABLE_ID}/records`
@@ -46,24 +53,40 @@ function saveDevisToNocoDB(data) {
     },
   }
 
-  const req = transport.request(options, (res) => {
-    let body = ''
-    res.on('data', (chunk) => { body += chunk })
-    res.on('end', () => {
-      if (res.statusCode >= 200 && res.statusCode < 300) {
-        console.log('[nocodb] Devis enregistré (status', res.statusCode + ')')
-      } else {
+  return new Promise((resolve) => {
+    const req = transport.request(options, (res) => {
+      let body = ''
+      res.on('data', (chunk) => { body += chunk })
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`[nocodb] ${label} enregistré (status`, res.statusCode + ')')
+          return resolve(true)
+        }
         console.error('[nocodb] Réponse inattendue', res.statusCode, body.slice(0, 200))
-      }
+        resolve(false)
+      })
+      res.on('error', () => resolve(false))
     })
-  })
 
-  req.on('error', (err) => {
-    console.error('[nocodb] Erreur réseau:', err.message)
-  })
+    req.setTimeout(REQUEST_TIMEOUT_MS, () => req.destroy(new Error('délai dépassé')))
+    req.on('error', (err) => {
+      console.error('[nocodb] Erreur réseau:', err.message)
+      resolve(false)
+    })
 
-  req.write(payload)
-  req.end()
+    req.write(payload)
+    req.end()
+  })
 }
 
-module.exports = { saveDevisToNocoDB }
+/** Devis / location (comportement historique : les appelants n'attendent pas). */
+function saveDevisToNocoDB(data) {
+  return postRecord(data, 'Devis')
+}
+
+/** Lead générique (contact, chat, …). Même mécanisme que les devis. */
+function saveLeadToNocoDB(data) {
+  return postRecord(data, `Lead ${data && data.type ? data.type : ''}`.trim())
+}
+
+module.exports = { saveDevisToNocoDB, saveLeadToNocoDB }

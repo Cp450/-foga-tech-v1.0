@@ -5,6 +5,11 @@ require('dotenv').config()
 
 const app = express()
 
+// Derrière un reverse proxy (Coolify/Traefik/Nginx) : req.ip doit être l'IP du visiteur
+// (anti-spam par IP). Nombre de proxys de confiance, 1 par défaut ; TRUST_PROXY=0 pour désactiver.
+const trustProxy = process.env.TRUST_PROXY
+app.set('trust proxy', trustProxy !== undefined && /^\d+$/.test(trustProxy) ? Number(trustProxy) : 1)
+
 const corsOrigins = process.env.NODE_ENV === 'production'
   ? (process.env.CORS_ORIGINS || 'https://foga-tech.com,https://www.foga-tech.com').split(',').map(o => o.trim())
   : null
@@ -20,6 +25,8 @@ app.use(cors({
     cb(new Error('Not allowed by CORS'))
   },
 }))
+// Chat : monté AVANT le parseur global pour imposer sa propre limite de corps (32 Ko).
+app.use('/api/chat', require('./routes/chat'))
 app.use(express.json({ limit: '1mb' }))
 app.use('/public', express.static(path.join(__dirname, 'public')))
 
@@ -41,6 +48,13 @@ app.use((req, res) => {
 
 // Error handler
 app.use((err, req, res, _next) => {
+  // Erreurs du client (JSON malformé, corps trop gros) : 4xx, pas un 500 qui ressemble à une panne.
+  if (err && err.status >= 400 && err.status < 500) {
+    return res.status(err.status).json({
+      success: false,
+      error: err.type === 'entity.too.large' ? 'Message trop volumineux.' : 'Requête invalide.',
+    })
+  }
   console.error('[api] error:', err)
   res.status(500).json({ success: false, error: 'Erreur serveur interne' })
 })

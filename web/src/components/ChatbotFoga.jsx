@@ -1,5 +1,6 @@
 ﻿import { useState, useRef, useEffect } from 'react'
 import DOMPurify from 'dompurify'
+import { api } from '../lib/api'
 
 /* ─── FAQ data ────────────────────────────────────────────────────────────── */
 const FAQS = [
@@ -35,7 +36,7 @@ const FAQS = [
   },
   {
     triggers: ['certification', 'diplôme', 'qualité', 'iso', 'garantie', 'certifié'],
-    response: 'Nos agréments &amp; certifications :\n• **Agrément Ministère BTP Congo**\n• **Ordre des Ingénieurs Congo**\n• **Normes BNC &amp; Eurocode 2** appliquées\n• **HQE** (en cours)\n\nToutes nos attestations sont disponibles en PDF sur demande.\n\n👉 [Voir nos réalisations](/portfolio)\n💬 [Demander les attestations](https://wa.me/242069905640?text=Bonjour%2C%20je%20souhaite%20recevoir%20vos%20attestations%20et%20agr%C3%A9ments)',
+    response: 'Nos agréments & certifications :\n• **Agrément Ministère BTP Congo**\n• **Ordre des Ingénieurs Congo**\n• **Normes BNC & Eurocode 2** appliquées\n• **HQE** (en cours)\n\nToutes nos attestations sont disponibles en PDF sur demande.\n\n👉 [Voir nos réalisations](/portfolio)\n💬 [Demander les attestations](https://wa.me/242069905640?text=Bonjour%2C%20je%20souhaite%20recevoir%20vos%20attestations%20et%20agr%C3%A9ments)',
     lingala: 'Tozali agréés na Ministère BTP na Congo, na Ordre des Ingénieurs.',
   },
   {
@@ -101,6 +102,7 @@ function getBotResponse(input) {
   if (best) return { text: best.response, lingala: best.lingala }
 
   return {
+    fallback: true, // propose le passage à un conseiller (bouton affiché sous la réponse)
     text: "Je n'ai pas encore d'info précise sur ce sujet. Voici ce que je sais répondre :\n\n• **Qui sommes-nous** — Foga-Tech, métiers, équipe\n• **Nos services** — civil, rural, location engins\n• **Devis & tarifs** — délais, paiement, MoMo\n• **Délais & planning** — durée chantier\n• **Certifications** — agréments, normes\n• **Localisation** — Brazzaville, Pool, Pointe-Noire\n• **Portfolio** — nos réalisations\n\nLe plus rapide pour votre projet :\n👉 [Demander mon devis gratuit](/devis)\n💬 [Parler à un expert sur WhatsApp](https://wa.me/242069905640?text=Bonjour%2C%20j%27ai%20une%20question)",
     lingala: 'Nazali na info te likolo ya likambo oyo. Tuna ngai na sujet mosusu, to benga WhatsApp: +242 06 990 56 40.',
   }
@@ -131,6 +133,51 @@ function formatMessage(text) {
 
 let _chatId = 0
 const nextChatId = () => { _chatId += 1; return _chatId }
+
+/* ─── Passage à un conseiller ─────────────────────────────────────────────── */
+const WA_NUMBER = '242069905640'
+const HANDOFF_TIMEOUT_MS = 15000
+
+// 8 à 16 chiffres ; chiffres, espaces, tirets, « + » en tête (même règle que l'API).
+function phoneOk(v) {
+  const t = v.trim()
+  if (!/^\+?[0-9][0-9 -]*$/.test(t)) return false
+  const n = t.replace(/\D/g, '').length
+  return n >= 8 && n <= 16
+}
+
+// Texte brut pour le transcript : sans markdown, sans lien, sans entité.
+function plainText(t, max) {
+  return String(t || '')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, max)
+}
+
+function buildTranscript(messages) {
+  return messages
+    .filter((m) => m.id !== 0) // salutation d'accueil : sans intérêt pour le conseiller
+    .map((m) => ({ role: m.from === 'user' ? 'visiteur' : 'bot', texte: plainText(m.text, 300) }))
+    .filter((m) => m.texte)
+    .slice(-12)
+}
+
+function whatsappFallbackUrl(nom, messages, note) {
+  const lastQ = [...messages].reverse().find((m) => m.from === 'user')
+  const parts = [`Bonjour, je suis ${nom.trim() || 'un visiteur du site'}.`]
+  if (note.trim()) parts.push(note.trim())
+  else if (lastQ) parts.push(`Ma question : ${plainText(lastQ.text, 200)}`)
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(parts.join(' ').slice(0, 400))}`
+}
+
+const FIELD_STYLE = {
+  background: 'rgba(255,255,255,0.05)',
+  border: '1px solid rgba(255,255,255,0.1)',
+  color: 'rgba(255,255,255,0.87)',
+}
+const LABEL_CLASS = 'block text-[10px] font-bold uppercase tracking-wider mb-1'
 
 const QUICK_REPLIES = [
   'Qui sommes-nous',
@@ -167,6 +214,17 @@ export default function ChatbotFoga() {
   const [showLingala, setShowLingala] = useState({})
   const bottomRef = useRef(null)
   const scrollRef  = useRef(null)
+  const inputRef = useRef(null)
+  const nomRef = useRef(null)
+  const telRef = useRef(null)
+  const triggerRef = useRef(null) // élément à re-focaliser à la fermeture du formulaire
+
+  // Passage à un conseiller
+  const [showForm, setShowForm] = useState(false)
+  const [hForm, setHForm] = useState({ nom: '', telephone: '', message: '', website: '' })
+  const [hErrors, setHErrors] = useState({})
+  const [hStatus, setHStatus] = useState('idle') // idle | sending | error
+  const [hError, setHError] = useState('')
 
   useEffect(() => {
     if (open) {
@@ -175,6 +233,80 @@ export default function ChatbotFoga() {
       }, 50)
     }
   }, [messages, open])
+
+  // Ouverture du formulaire : le focus va sur le premier champ.
+  useEffect(() => {
+    if (showForm) nomRef.current?.focus()
+  }, [showForm])
+
+  function openHandoff(e) {
+    triggerRef.current = e?.currentTarget || document.activeElement
+    setHErrors({})
+    setHStatus('idle')
+    setHError('')
+    setShowForm(true)
+  }
+
+  function closeHandoff() {
+    setShowForm(false)
+    setHStatus('idle')
+    setHError('')
+    setTimeout(() => {
+      const t = triggerRef.current
+      if (t && t.isConnected) t.focus()
+      else inputRef.current?.focus()
+    }, 0)
+  }
+
+  async function submitHandoff(e) {
+    e.preventDefault()
+    if (hStatus === 'sending') return
+
+    const errs = {}
+    if (hForm.nom.trim().length < 2) errs.nom = 'Indiquez votre nom.'
+    if (!phoneOk(hForm.telephone)) errs.telephone = 'Numéro invalide : 8 à 16 chiffres (ex. +242 06 990 56 40).'
+    setHErrors(errs)
+    if (errs.nom) { nomRef.current?.focus(); return }
+    if (errs.telephone) { telRef.current?.focus(); return }
+
+    setHStatus('sending')
+    setHError('')
+    let timer
+    try {
+      const data = await Promise.race([
+        api.post('/api/chat/handoff', {
+          nom: hForm.nom.trim(),
+          telephone: hForm.telephone.trim(),
+          message: hForm.message.trim(),
+          transcript: buildTranscript(messages),
+          website: hForm.website, // honeypot
+        }),
+        new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('timeout')), HANDOFF_TIMEOUT_MS) }),
+      ])
+      const ref = data && typeof data.reference === 'string' ? `\n\nRéférence : ${data.reference}` : ''
+      setMessages((m) => [...m, {
+        id: nextChatId(),
+        from: 'bot',
+        text: `Message transmis. Un conseiller vous répond sur WhatsApp au numéro indiqué.${ref}`,
+        lingala: null,
+      }])
+      setHForm({ nom: '', telephone: '', message: '', website: '' })
+      setShowForm(false)
+      setHStatus('idle')
+      setTimeout(() => inputRef.current?.focus(), 0)
+    } catch (err) {
+      setHStatus('error')
+      setHError(
+        err && err.status === 429
+          ? 'Trop de demandes en peu de temps.'
+          : err && err.status === 400 && err.message
+            ? err.message
+            : "Votre message n'a pas pu être transmis."
+      )
+    } finally {
+      clearTimeout(timer)
+    }
+  }
 
   function sendMessage(text) {
     if (!text.trim()) return
@@ -314,6 +446,9 @@ export default function ChatbotFoga() {
           {/* ── Messages — SCROLL FIX ── */}
           <div
             ref={scrollRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Conversation"
             data-lenis-prevent
             className="flex-1 min-h-0 px-3 py-4 space-y-3"
             style={{
@@ -386,6 +521,18 @@ export default function ChatbotFoga() {
                       )}
                     </div>
                   )}
+                  {/* Repli du bot : proposer un humain */}
+                  {msg.fallback && !showForm && (
+                    <button
+                      type="button"
+                      onClick={openHandoff}
+                      className="mt-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 transition-all"
+                      style={{ background: ORANGE, color: 'white', borderRadius: '99px' }}
+                    >
+                      <span className="material-symbols-outlined text-[15px]" aria-hidden="true">support_agent</span>
+                      Parler à un conseiller
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -429,6 +576,140 @@ export default function ChatbotFoga() {
             <div ref={bottomRef} />
           </div>
 
+          {showForm ? (
+            /* ── Formulaire « Parler à un conseiller » ── */
+            <form
+              onSubmit={submitHandoff}
+              noValidate
+              aria-labelledby="chat-handoff-title"
+              onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); closeHandoff() } }}
+              data-lenis-prevent
+              className="flex-shrink-0 px-3 py-3 space-y-2.5"
+              style={{
+                borderTop: `1px solid ${BORDER_SUB}`,
+                background: BG_PANEL,
+                borderRadius: '0 0 1rem 1rem',
+                maxHeight: '68%',
+                overflowY: 'auto',
+              }}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <p id="chat-handoff-title" className="text-white font-bold text-sm font-headline">
+                  Parler à un conseiller
+                </p>
+                <button
+                  type="button"
+                  onClick={closeHandoff}
+                  className="text-[11px] font-bold uppercase tracking-wide opacity-60 hover:opacity-100"
+                  style={{ color: 'white' }}
+                >
+                  Annuler
+                </button>
+              </div>
+
+              <div>
+                <label htmlFor="chat-handoff-nom" className={LABEL_CLASS} style={{ color: 'rgba(255,255,255,0.55)' }}>
+                  Votre nom
+                </label>
+                <input
+                  id="chat-handoff-nom"
+                  ref={nomRef}
+                  type="text"
+                  required
+                  maxLength={100}
+                  autoComplete="name"
+                  value={hForm.nom}
+                  onChange={(e) => setHForm({ ...hForm, nom: e.target.value })}
+                  aria-invalid={hErrors.nom ? 'true' : undefined}
+                  aria-describedby={hErrors.nom ? 'chat-handoff-nom-err' : undefined}
+                  className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                  style={FIELD_STYLE}
+                />
+                {hErrors.nom && (
+                  <p id="chat-handoff-nom-err" className="text-[11px] mt-1" style={{ color: '#FCA5A5' }}>{hErrors.nom}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="chat-handoff-tel" className={LABEL_CLASS} style={{ color: 'rgba(255,255,255,0.55)' }}>
+                  Téléphone / WhatsApp
+                </label>
+                <input
+                  id="chat-handoff-tel"
+                  ref={telRef}
+                  type="tel"
+                  inputMode="tel"
+                  required
+                  maxLength={24}
+                  autoComplete="tel"
+                  placeholder="+242 06 990 56 40"
+                  value={hForm.telephone}
+                  onChange={(e) => setHForm({ ...hForm, telephone: e.target.value })}
+                  aria-invalid={hErrors.telephone ? 'true' : undefined}
+                  aria-describedby={hErrors.telephone ? 'chat-handoff-tel-err' : undefined}
+                  className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                  style={FIELD_STYLE}
+                />
+                {hErrors.telephone && (
+                  <p id="chat-handoff-tel-err" className="text-[11px] mt-1" style={{ color: '#FCA5A5' }}>{hErrors.telephone}</p>
+                )}
+              </div>
+
+              <div>
+                <label htmlFor="chat-handoff-msg" className={LABEL_CLASS} style={{ color: 'rgba(255,255,255,0.55)' }}>
+                  Message (facultatif)
+                </label>
+                <textarea
+                  id="chat-handoff-msg"
+                  rows={2}
+                  maxLength={1000}
+                  value={hForm.message}
+                  onChange={(e) => setHForm({ ...hForm, message: e.target.value })}
+                  className="w-full text-sm px-3 py-2 rounded-xl outline-none resize-none"
+                  style={FIELD_STYLE}
+                />
+              </div>
+
+              {/* Honeypot anti-spam : hors écran (pas display:none), ignoré des lecteurs d'écran et du clavier */}
+              <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}>
+                <label htmlFor="chat-handoff-website">Ne pas remplir ce champ</label>
+                <input
+                  id="chat-handoff-website" name="website" type="text" tabIndex={-1} autoComplete="off"
+                  value={hForm.website} onChange={(e) => setHForm({ ...hForm, website: e.target.value })}
+                />
+              </div>
+
+              {hStatus === 'error' && (
+                <div
+                  role="alert"
+                  className="text-xs px-3 py-2 rounded-xl"
+                  style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.35)', color: '#FECACA' }}
+                >
+                  <p>{hError} Écrivez-nous directement sur WhatsApp :</p>
+                  <a
+                    href={whatsappFallbackUrl(hForm.nom, messages, hForm.message)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 mt-2 text-[11px] font-bold uppercase tracking-wide px-3 py-1.5"
+                    style={{ background: '#25D366', color: '#04210F', borderRadius: '99px' }}
+                  >
+                    <span className="material-symbols-outlined text-[15px]" aria-hidden="true">chat</span>
+                    Ouvrir WhatsApp
+                  </a>
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={hStatus === 'sending'}
+                className="w-full text-[12px] font-bold uppercase tracking-wide px-4 py-2.5 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ background: `linear-gradient(135deg, ${ORANGE}, #E55A00)`, color: 'white', borderRadius: '99px' }}
+              >
+                {hStatus === 'sending' ? 'Envoi en cours…' : hStatus === 'error' ? 'Réessayer' : 'Envoyer à un conseiller'}
+              </button>
+            </form>
+          ) : (
+          <>
           {/* ── Quick replies — horizontal scroll, no wrap ── */}
           <div
             className="flex-shrink-0 px-3 py-2"
@@ -442,6 +723,16 @@ export default function ChatbotFoga() {
                 paddingBottom: '2px',
               }}
             >
+              {/* Toujours accessible : passage à un humain */}
+              <button
+                type="button"
+                onClick={openHandoff}
+                className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-3 py-1.5 whitespace-nowrap sticky left-0"
+                style={{ background: ORANGE, color: 'white', borderRadius: '99px' }}
+              >
+                <span className="material-symbols-outlined text-[15px]" aria-hidden="true">support_agent</span>
+                Parler à un conseiller
+              </button>
               {QUICK_REPLIES.map((q) => (
                 <button
                   key={q}
@@ -478,6 +769,8 @@ export default function ChatbotFoga() {
             }}
           >
             <input
+              ref={inputRef}
+              aria-label="Votre message"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && sendMessage(input)}
@@ -507,6 +800,8 @@ export default function ChatbotFoga() {
               </span>
             </button>
           </div>
+          </>
+          )}
         </div>
       )}
     </>

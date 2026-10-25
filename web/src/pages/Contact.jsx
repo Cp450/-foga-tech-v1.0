@@ -52,7 +52,7 @@ const DIRECTS = [
 ]
 
 export default function Contact() {
-  const [form, setForm] = useState({ nom: '', email: '', sujet: '', message: '' })
+  const [form, setForm] = useState({ nom: '', email: '', sujet: '', message: '', website: '' })
   const [sent, setSent] = useState(false)
   const [nlEmail, setNlEmail] = useState('')
   const [nlStatus, setNlStatus] = useState('idle') // idle | loading | success
@@ -70,6 +70,11 @@ export default function Contact() {
 
   const submit = (e) => {
     e.preventDefault()
+    // Enregistrement CRM (best-effort, silencieux) : le message part aussi vers l'API.
+    // `website` = honeypot (doit rester vide ; rempli = bot, l'API l'ignore).
+    api.post('/api/contact', {
+      nom: form.nom, email: form.email, sujet: form.sujet, message: form.message, website: form.website,
+    }).catch(() => { /* WhatsApp reste le canal principal */ })
     const msg = encodeURIComponent(
       `*Contact Foga-Tech*\n\nNom: ${form.nom}\nEmail: ${form.email}\nSujet: ${form.sujet}\n\n${form.message}`
     )
@@ -317,6 +322,14 @@ export default function Contact() {
                       placeholder="Décrivez votre projet ou posez votre question..."
                       value={form.message} onChange={(e) => setForm({ ...form, message: e.target.value })}
                       className="w-full bg-white/[0.08] border border-white/15 text-white placeholder:text-white/25 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-secondary-container transition-all resize-none"
+                    />
+                  </div>
+                  {/* Honeypot anti-spam : hors écran (pas display:none), ignoré des lecteurs d'écran et du clavier */}
+                  <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', top: 'auto', width: 1, height: 1, overflow: 'hidden' }}>
+                    <label htmlFor="contact-website">Ne pas remplir ce champ</label>
+                    <input
+                      id="contact-website" name="website" type="text" tabIndex={-1} autoComplete="off"
+                      value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })}
                     />
                   </div>
                   <button
